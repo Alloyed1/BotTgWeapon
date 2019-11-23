@@ -28,12 +28,12 @@ namespace WebApplication2.Models
                 new ShowResultCommand(),
                 new HelpCommand(),
                 new NotifyComand(),
-                new StopCommand()
+                new StopCommand(),
+                new StopNotifyCommand()
             };
             
-            //TODO: Add more commands
 
-            var proxy = new HttpToSocks5Proxy("168.235.93.240", 32659, "Ve75UG", "JtjpX6");
+            var proxy = new HttpToSocks5Proxy("176.107.182.181", 44516, "Qye2Ck", "Z1G7oE");
             botClient = new TelegramBotClient(AppSettings.Key, proxy);
             await botClient.SetWebhookAsync(AppSettings.url);
             return botClient;

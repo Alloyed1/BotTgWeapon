@@ -71,7 +71,7 @@ namespace WebApplication2.Models.Commands
 
 				await botClient.SendTextMessageAsync(chatId, "Чтобы остановить отправку сообщений - нажмите на кнопку",
 					replyMarkup: keyboard4);
-				await Task.Delay(2000);
+				await Task.Delay(1100);
 				bool isStop = false;
 				var listt = list.Take(50);
 				var viewList = new List<UserViews>();
@@ -112,7 +112,7 @@ namespace WebApplication2.Models.Commands
 								));
 						}
 
-						await Task.Delay(new Random().Next(400, 500));
+						await Task.Delay(new Random().Next(200, 300));
 						if (listt.Last() == lis)
 						{
 							var keyboard3 = new ReplyKeyboardMarkup

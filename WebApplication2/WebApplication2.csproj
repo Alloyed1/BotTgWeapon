@@ -10,6 +10,7 @@
       <PackageReference Include="linq2db" Version="3.0.0-preview.1" />
       <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
       <PackageReference Include="Telegram.Bot" Version="15.0.0" />
+      <PackageReference Include="VkNet" Version="1.47.0" />
       <PackageReference Include="Westwind.Globalization.AspnetCore3" Version="1.0.2" />
     </ItemGroup>
 
