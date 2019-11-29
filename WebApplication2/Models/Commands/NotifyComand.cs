@@ -22,17 +22,14 @@ namespace WebApplication2.Models.Commands
             var chatId = message.Chat.Id;
             using(var db = new DbNorthwind())
             {
-                var keyboard4 = new ReplyKeyboardMarkup
+
+                
+                ReplyKeyboardMarkup ReplyKeyboard = new[]
                 {
-                    Keyboard = new[]
-                    {
-                        new[]
-                        {
-                            new KeyboardButton("Отключить автоматические уведомления"),
-                            new KeyboardButton("Помощь"),
-                        },
-                    }
+                    new[] { "Отключить автоматические уведомления", "Помощь"},
                 };
+                ReplyKeyboard.ResizeKeyboard = true;
+                
                 await db.LastQuery
                     .Where(w => w.ChatId == chatId.ToString())
                     .Set(s => s.IsWatching, 1)
@@ -40,7 +37,7 @@ namespace WebApplication2.Models.Commands
 
                 var query = (await db.LastQuery
                     .FirstOrDefaultAsync(s => s.ChatId == chatId.ToString())).Query;
-                await botClient.SendTextMessageAsync(chatId, $"Отслеживание новых объявлений по запросу \"{query}\" успешно включено", replyMarkup: keyboard4);
+                await botClient.SendTextMessageAsync(chatId, $"Отслеживание новых объявлений по запросу \"{query}\" успешно включено", replyMarkup: ReplyKeyboard);
             }
         }
 

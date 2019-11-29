@@ -59,14 +59,20 @@ namespace WebApplication2
 	            
                 () => VkBoy.GetWeaponListComments(),
                 Cron.MinuteInterval(55));
+
             RecurringJob.AddOrUpdate(
 	            
                 () => VkBoy.CheckNewWeapon(),
-                Cron.MinuteInterval(15));
+                Cron.MinuteInterval(30));
+            
+            //RecurringJob.AddOrUpdate(
+	            
+                //() => VkBoy.UpdateSite(),
+                //Cron.MinuteInterval(10));
 
             
             //Bot Configurations
-            Bot.GetBotClientAsync().Wait();
+           Bot.GetBotClientAsync().Wait();
         }
     }
 }

@@ -54,18 +54,13 @@ namespace WebApplication2.Models.Commands
 			var list = await GetLastQuery(chatId.ToString());
 			if (list != null)
 			{
-				var keyboard4 = new ReplyKeyboardMarkup
+
+				ReplyKeyboardMarkup keyboard4 = new[]
 				{
-					Keyboard = new[]
-					{
-						new[]
-						{
-							new KeyboardButton("Остановить"),
-							new KeyboardButton("Включить уведомления по этому запросу"),
-							new KeyboardButton("Помощь"),
-						},
-					}
+					new[] { "Остановить"},
+					new []{"Помощь", "Включить уведомления по этому запросу"}
 				};
+				keyboard4.ResizeKeyboard = true;
 
 
 
@@ -112,24 +107,19 @@ namespace WebApplication2.Models.Commands
 								));
 						}
 
-						await Task.Delay(new Random().Next(200, 300));
+						await Task.Delay(new Random().Next(300, 500));
 						if (listt.Last() == lis)
 						{
-							var keyboard3 = new ReplyKeyboardMarkup
+
+							ReplyKeyboardMarkup ReplyKeyboard = new[]
 							{
-								Keyboard = new[]
-								{
-									new[]
-									{
-										new KeyboardButton("Показать результат"),
-										new KeyboardButton("Включить уведомления по этому запросу"),
-										new KeyboardButton("Помощь"),
-									},
-								}
+								new[] { "Показать результат", "Включить уведомления по этому запросу"},
+								new []{"Помощь"}
 							};
+							ReplyKeyboard.ResizeKeyboard = true;
 
 							await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны",
-								replyMarkup: keyboard3);
+								replyMarkup: ReplyKeyboard);
 						}
 
 						if (await GetLatQueryText(chatId.ToString()) == string.Empty)

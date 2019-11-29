@@ -28,20 +28,15 @@ namespace WebApplication2.Models.Commands
                     if (query.IsWatching == 1)
                     {
                         
-                        var keyboard3 = new ReplyKeyboardMarkup
+                        ReplyKeyboardMarkup ReplyKeyboard = new[]
                         {
-                            Keyboard = new[]
-                            {
-                                new[]
-                                {
-                                    new KeyboardButton("Помощь"),
-                                },
-                            }
+                            new []{"Помощь"}
                         };
+                        ReplyKeyboard.ResizeKeyboard = true;
                         
                         query.IsWatching = 0;
                         await db.UpdateAsync(query);
-                        await botClient.SendTextMessageAsync(chatId, $"Автоматические уведомления по запрсу \"{query.Query}\" были отключены.\nМожете делать новые запросы", replyMarkup:keyboard3);
+                        await botClient.SendTextMessageAsync(chatId, $"Автоматические уведомления по запрсу \"{query.Query}\" были отключены.\nМожете делать новые запросы", replyMarkup:ReplyKeyboard );
                     }
                 }
             }

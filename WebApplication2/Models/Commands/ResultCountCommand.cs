@@ -43,16 +43,13 @@ namespace WebApplication2.Models.Commands
                     .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()) || w.FirstComment.ToLower().Contains(message.Text.ToLower()))
                     .ToListAsync();
 
-                var keyboard = new ReplyKeyboardMarkup
+                
+
+                ReplyKeyboardMarkup ReplyKeyboard = new[]
                 {
-                    Keyboard = new[]
-                    {
-                        new[]
-                        {
-                            new KeyboardButton("Показать результат"),
-                        },
-                    }
+                    new[] { "Показать результат", "Помощь"},
                 };
+                ReplyKeyboard.ResizeKeyboard = true;
 
 
 
@@ -71,7 +68,7 @@ namespace WebApplication2.Models.Commands
                         .GroupBy(p => new { p.Text })
                         .Select(g => g.First())
                         .ToList()
-                        .Count.ToString()} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: keyboard);
+                        .Count.ToString()} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: ReplyKeyboard);
                 }
 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
@@ -10,6 +11,7 @@ using VkNet.Enums.Filters;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
 using VkNet.Model.RequestParams;
+using OpenQA.Selenium.PhantomJS;
 
 namespace WebApplication2.Models
 {
@@ -20,34 +22,18 @@ namespace WebApplication2.Models
             VkApi _api = new VkApi();
             var userList = new List<string>
                 {
-                    //"+79164676167;!Krot0070",
-                    "+79015119808;!Krot0070",
-                    //"+79015349585;!Krot0070",
-                    "+79067688669;cw42PU",
-					"+79164676167;!Krot0070"
+
+                    "2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
+                    "74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
+					"bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
 				};
-            try
-            {
+
                 _api.Authorize(new ApiAuthParams
                 {
-                    ApplicationId = 123456,
-                    Login = "+79067688669",
-                    Password = "cw42PU",
-                    Settings = Settings.Photos
+                    AccessToken = "2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c"
                 });
-            }
-            catch(Exception e)
-            {
-                _api.Authorize(new ApiAuthParams
-                {
-                    ApplicationId = 123456,
-                    Login = "89015119808",
-                    Password = "!Krot0070",
-                    Settings = Settings.All
-                });
-            }
-            
-			using(var db = new DbNorthwind())
+
+	        using(var db = new DbNorthwind())
 			{
 
 				await db.WeaponList.Where(w => w.FirstComment == "").DeleteAsync();
@@ -108,8 +94,9 @@ namespace WebApplication2.Models
 				}
                 await db.WeaponList.Where(w => w.FirstComment == "").DeleteAsync();
                 db.BulkCopy(weaponLists);
+                await _api.LogOutAsync();
 
-			}
+            }
         }
 
         public async static Task GetWeaponListComments()
@@ -148,20 +135,16 @@ namespace WebApplication2.Models
 
                 };
                     var userList = new List<string>
-                {
-                    //"+79164676167;!Krot0070",
-                    "+79015119808;!Krot0070",
-                    //"+79015349585;!Krot0070",
-                    "+79067688669;cw42PU",
-					"+79164676167;!Krot0070"
-				};
+                    {
+
+	                    "2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
+	                    "74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
+	                    "bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
+                    };
                     int activeUser = 0;
                     _api.Authorize(new ApiAuthParams
                     {
-                        ApplicationId = 123456,
-                        Login = userList[activeUser].Split(';')[0],
-                        Password = userList[activeUser].Split(';')[1],
-                        Settings = Settings.All
+                        AccessToken = userList[activeUser]
                     });
 
                     foreach (var item in list)
@@ -175,7 +158,7 @@ namespace WebApplication2.Models
                                 AlbumId = PhotoAlbumType.Id(item.AlbumId),
                                 Reversed = true,
                                 Extended = true,
-                                Count = 1000
+                                Count = 500
                             });
                             List<WeaponList> weaponLists = new List<WeaponList>();
                             foreach (var photo in query.Where(w => w.Text == "" && w.Comments.Count != 0).ToList())
@@ -205,13 +188,12 @@ namespace WebApplication2.Models
                                         activeUser = 0;
                                     }
                                     VkApi _api2 = new VkApi();
+                                    await _api.LogOutAsync();
                                     _api2.Authorize(new ApiAuthParams
                                     {
-                                        ApplicationId = 123456,
-                                        Login = userList[activeUser].Split(';')[0],
-                                        Password = userList[activeUser].Split(';')[1],
-                                        Settings = Settings.All
+	                                    AccessToken = userList[activeUser]
                                     });
+                                    
                                     _api = _api2;
                                 }
                             }
@@ -221,8 +203,10 @@ namespace WebApplication2.Models
                         {
                             //await botClient.SendTextMessageAsync(chatId, $"{item.GroupId} {item.AlbumId} ");
                         }
+                        
 
                     }
+                    await _api.LogOutAsync();
 
                 }
             }
@@ -230,6 +214,15 @@ namespace WebApplication2.Models
             {
 
             }
+            
+        }
+
+        public async static Task UpdateSite()
+        {
+	        var driver = new PhantomJSDriver();
+	        driver.Manage().Window.Maximize();
+	        driver.Navigate().GoToUrl("https://bottg.website/get");
+	        driver.Close();
         }
 
         public async static Task CheckNewWeapon()
