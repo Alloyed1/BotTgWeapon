@@ -30,7 +30,9 @@ namespace WebApplication2
             
             services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("DefaultConnection")));
             services.AddHangfireServer();
-            
+
+
+
             services.AddControllers().AddNewtonsoftJson();
         }
 

@@ -1,6 +1,6 @@
 ﻿using LinqToDB;
 using WebApplication2.Models;
-using Chat = Telegram.Bot.Types.Chat;
+using Chat = WebApplication2.Models.Chat;
 
 namespace WebApplication2
 {

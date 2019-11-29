@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using LinqToDB;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace WebApplication2.Models.Commands
 {
@@ -18,7 +20,27 @@ namespace WebApplication2.Models.Commands
         public override async Task Execute(Message message, TelegramBotClient botClient)
         {
             var chatId = message.Chat.Id;
-            await botClient.SendTextMessageAsync(chatId, "Hallo I'm ASP.NET Core Bot", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            using (var db = new DbNorthwind())
+            {
+                if (await db.Chats.FirstOrDefaultAsync(w => w.ChatId == chatId.ToString()) == null)
+                {
+                    await AddUser(new Models.Chat { ChatId = chatId.ToString(), FirstName = message.From.FirstName, LastName = message.From.LastName, UserName = message.From.Username });
+                }
+            }
+            ReplyKeyboardMarkup ReplyKeyboard = new[]
+            {
+                new []{"Помощь"}
+            };
+            ReplyKeyboard.ResizeKeyboard = true;
+            await botClient.SendTextMessageAsync(chatId, "Добро пожаловать! Нажмите на \"Помощь\"", replyMarkup: ReplyKeyboard);
+        }
+        public async Task AddUser(Models.Chat chat)
+        {
+
+            using(var db = new DbNorthwind())
+            {
+                await db.InsertWithInt32IdentityAsync(chat);
+            }
         }
     }
 }
