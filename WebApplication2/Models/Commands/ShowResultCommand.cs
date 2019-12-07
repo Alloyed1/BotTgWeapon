@@ -35,6 +35,7 @@ namespace WebApplication2.Models.Commands
 				return await db.WeaponList
 					.Where(w => w.Text.ToLower().Contains(query.Query) ||
 					            w.FirstComment.ToLower().Contains(query.Query))
+					.OrderByDescending(w => w.StartTime)
 					.ToListAsync();
 			}
 		}
@@ -58,13 +59,13 @@ namespace WebApplication2.Models.Commands
 				ReplyKeyboardMarkup keyboard4 = new[]
 				{
 					new[] { "Остановить"},
-					new []{"Помощь", "Включить уведомления по этому запросу"}
+					new []{"Помощь"}
 				};
 				keyboard4.ResizeKeyboard = true;
 
 
 
-				await botClient.SendTextMessageAsync(chatId, "Чтобы остановить отправку сообщений - нажмите на кнопку",
+				await botClient.SendTextMessageAsync(chatId, "Чтобы остановить отправку сообщений - нажмите на кнопку. Вам будеь показано 50 последних результатов.",
 					replyMarkup: keyboard4);
 				await Task.Delay(1100);
 				bool isStop = false;
@@ -76,7 +77,7 @@ namespace WebApplication2.Models.Commands
 						{ChatId = (int) chatId, GroupId = lis.GroupId.ToString(), PhotoId = lis.PhotoId.ToString()});
 				}
 
-				using (var db = new DbNorthwind())
+				await using (var db = new DbNorthwind())
 				{
 					db.BulkCopy(viewList);
 				}
@@ -113,8 +114,8 @@ namespace WebApplication2.Models.Commands
 
 							ReplyKeyboardMarkup ReplyKeyboard = new[]
 							{
-								new[] { "Показать результат", "Включить уведомления по этому запросу"},
-								new []{"Помощь"}
+								new[] { "Вкл.авто уведомление"},
+								new []{"Помощь", "Показать результат"}
 							};
 							ReplyKeyboard.ResizeKeyboard = true;
 

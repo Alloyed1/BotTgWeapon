@@ -8,6 +8,12 @@
       <PackageReference Include="Hangfire" Version="1.7.7" />
       <PackageReference Include="HttpToSocks5Proxy" Version="1.4.0" />
       <PackageReference Include="linq2db" Version="3.0.0-preview.1" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0-preview3.19554.8" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0-preview3.19554.8" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0-preview3.19554.8">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
       <PackageReference Include="Selenium.PhantomJS.WebDriver" Version="2.1.1" />
       <PackageReference Include="Selenium.WebDriver" Version="3.13.0" />

@@ -18,6 +18,16 @@ namespace WebApplication2
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                        serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromHours(10);
+                        // Set properties and call methods on options
+                    })
+
+                    .UseStartup<Startup>();
+                    
+                });
     }
 }

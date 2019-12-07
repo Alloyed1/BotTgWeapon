@@ -32,7 +32,7 @@ namespace WebApplication2.Models.Commands
                 new []{"Помощь"}
             };
             ReplyKeyboard.ResizeKeyboard = true;
-            await botClient.SendTextMessageAsync(chatId, "Добро пожаловать! Нажмите на \"Помощь\"", replyMarkup: ReplyKeyboard);
+            await botClient.SendTextMessageAsync(chatId, "Приветствую! Введите слово для поиска или нажмите \"Помощь\"", replyMarkup: ReplyKeyboard);
         }
         public async Task AddUser(Models.Chat chat)
         {

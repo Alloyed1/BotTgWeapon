@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using LinqToDB.Mapping;
 
 namespace WebApplication2.Models
@@ -22,6 +23,9 @@ namespace WebApplication2.Models
         public string FirstComment { get; set; }
         [Column(Name = "PhotoId")]
         public long PhotoId { get; set; }
+
+        [Column(Name = "StartTime")]
+        public DateTime StartTime { get; set; }
 
 
     }

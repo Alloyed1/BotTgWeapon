@@ -31,7 +31,9 @@ namespace WebApplication2.Models
                 new StopCommand(),
                 new StopNotifyCommand(),
                 new StartParseCommentsCommand(),
-                new StartParseListCommand()
+                new StartParseListCommand(),
+                new ReportCommand(),
+                new ReportAdminCommand()
             };
             
 

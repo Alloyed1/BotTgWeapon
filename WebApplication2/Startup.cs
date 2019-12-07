@@ -12,6 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using WebApplication2.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApplication2
 {
@@ -28,6 +31,9 @@ namespace WebApplication2
         public void ConfigureServices(IServiceCollection services)
         {
             
+            services.AddDbContext<ApplicationContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            
             services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("DefaultConnection")));
             services.AddHangfireServer();
 
@@ -37,6 +43,7 @@ namespace WebApplication2
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        [Obsolete]
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -67,10 +74,10 @@ namespace WebApplication2
                 () => VkBoy.CheckNewWeapon(),
                 Cron.MinuteInterval(30));
             
-            //RecurringJob.AddOrUpdate(
+            RecurringJob.AddOrUpdate(
 	            
-                //() => VkBoy.UpdateSite(),
-                //Cron.MinuteInterval(10));
+                () => VkBoy.UpdateSite(),
+                Cron.MinuteInterval(1));
 
             
             //Bot Configurations

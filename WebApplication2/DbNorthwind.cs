@@ -6,7 +6,7 @@ namespace WebApplication2
 {
     public class DbNorthwind : LinqToDB.Data.DataConnection
     {
-        public DbNorthwind() : base(ProviderName.SqlServer, @"Data Source=SQL6007.site4now.net;Initial Catalog=DB_A4FCA2_tgbot;User Id=DB_A4FCA2_tgbot_admin;Password=telegramBOT!2;") { }
+        public DbNorthwind() : base(ProviderName.SqlServer, @"Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;") { }
 
         public ITable<Chat> Chats => GetTable<Chat>();
         public ITable<WeaponList> WeaponList => GetTable<WeaponList>();

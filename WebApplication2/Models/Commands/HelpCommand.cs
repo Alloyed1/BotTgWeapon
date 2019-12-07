@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -17,7 +18,7 @@ namespace WebApplication2.Models.Commands
         public override async Task Execute(Message message, TelegramBotClient botClient)
         {
             var chatId = message.Chat.Id;
-            await botClient.SendTextMessageAsync(chatId, "Напиши, что ищешь", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            await botClient.SendTextMessageAsync(chatId, "Бот для поиска по страйкбольным барахолкам."+ Environment.NewLine +" В случае замечаний/предложений для связи с администрацией напишите: /report текст сообщения", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
         }
     }
 }

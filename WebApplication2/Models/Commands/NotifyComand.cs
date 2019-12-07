@@ -9,7 +9,7 @@ namespace WebApplication2.Models.Commands
 {
     public class NotifyComand : Command
     {
-        public override string Name => "Включить уведомления по этому запросу";
+        public override string Name => "Вкл.авто уведомление";
         public override bool Contains(Message message)
         {
             if (message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
