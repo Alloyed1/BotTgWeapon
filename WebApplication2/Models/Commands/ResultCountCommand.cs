@@ -39,9 +39,15 @@ namespace WebApplication2.Models.Commands
 
 
 
-                var ggg = await db.WeaponList
-                    .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()) || w.FirstComment.ToLower().Contains(message.Text.ToLower()))
+                var gggList = await db.WeaponList
+                    .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()) ||
+                                w.FirstComment.ToLower().Contains(message.Text.ToLower()))
                     .ToListAsync();
+                
+                var ggg = gggList.GroupBy(f => f.Text)
+                    .Select(g => g.First())
+                    .Count();
+                    
 
                 
 
@@ -53,22 +59,14 @@ namespace WebApplication2.Models.Commands
 
 
 
-                if (ggg.Count == 0)
+                if (ggg == 0)
                 {
-                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg
-                        .GroupBy(p => new { p.Text })
-                        .Select(g => g.First())
-                        .ToList()
-                        .Count.ToString()} Нажми «Показать результат» либо сделай новый запрос.");
+                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.");
 
                 }
                 else
                 {
-                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg
-                        .GroupBy(p => new { p.Text })
-                        .Select(g => g.First())
-                        .ToList()
-                        .Count.ToString()} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: ReplyKeyboard);
+                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: ReplyKeyboard);
                 }
 
 

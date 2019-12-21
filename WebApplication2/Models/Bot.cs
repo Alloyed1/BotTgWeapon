@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MihaZupan;
 using Telegram.Bot;
@@ -30,8 +31,6 @@ namespace WebApplication2.Models
                 new NotifyComand(),
                 new StopCommand(),
                 new StopNotifyCommand(),
-                new StartParseCommentsCommand(),
-                new StartParseListCommand(),
                 new ReportCommand(),
                 new ReportAdminCommand()
             };

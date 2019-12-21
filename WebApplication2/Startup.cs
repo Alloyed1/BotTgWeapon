@@ -36,6 +36,8 @@ namespace WebApplication2
             
             services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("DefaultConnection")));
             services.AddHangfireServer();
+            
+            services.AddHostedService<VkBoy>();
 
 
 
@@ -60,28 +62,28 @@ namespace WebApplication2
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
             
-            RecurringJob.AddOrUpdate(
-                () => VkBoy.GetWeaponList(),
-                Cron.MinuteInterval(30));
             
-            RecurringJob.AddOrUpdate(
-	            
-                () => VkBoy.GetWeaponListComments(),
-                Cron.MinuteInterval(55));
 
-            RecurringJob.AddOrUpdate(
-	            
-                () => VkBoy.CheckNewWeapon(),
-                Cron.MinuteInterval(30));
             
             RecurringJob.AddOrUpdate(
 	            
-                () => VkBoy.UpdateSite(),
+                () => HangfireTasks.Test(),
                 Cron.MinuteInterval(1));
-
             
+            RecurringJob.AddOrUpdate(
+	            
+                () => HangfireTasks.Work(),
+                Cron.MinuteInterval(10));
+                
+
+            RecurringJob.AddOrUpdate(
+
+                () => VkBoy.CheckNewWeapon(),
+                Cron.MinuteInterval(15));
+
+
             //Bot Configurations
-           Bot.GetBotClientAsync().Wait();
+            Bot.GetBotClientAsync().Wait();
         }
     }
 }

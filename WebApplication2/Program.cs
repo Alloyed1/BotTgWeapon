@@ -21,13 +21,10 @@ namespace WebApplication2
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureKestrel(serverOptions =>
-                    {
-                        serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromHours(10);
-                        // Set properties and call methods on options
-                    })
-
-                    .UseStartup<Startup>();
-                    
+                        {
+                            serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(20);
+                        })
+                        .UseStartup<Startup>();
                 });
     }
 }

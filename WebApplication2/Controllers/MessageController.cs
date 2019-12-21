@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Unicode;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,7 @@ namespace WebApplication2.Controllers
         {
             return "123123";
         }
+        
 
         [HttpPost]
         [Route("/post")]
@@ -38,7 +40,7 @@ namespace WebApplication2.Controllers
         {
 
             if (update == null) return Ok();
-
+            
             var commands = Bot.Commands;
             var message = update.Message;
             var botClient = await Bot.GetBotClientAsync();
@@ -50,17 +52,19 @@ namespace WebApplication2.Controllers
                 if (command.Contains(message))
                 {
                     isCommand = true;
-                    await command.Execute(message, botClient);
+                    command.Execute(message, botClient);
+
                     break;
                 }
             }
 
             if (!isCommand)
             {
-                await commands[0].Execute(message, botClient);
+                commands[0].Execute(message, botClient);
             }
-            
+
             return Ok();
+
         }
     }
 }

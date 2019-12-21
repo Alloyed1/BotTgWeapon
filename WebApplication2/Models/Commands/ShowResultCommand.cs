@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
@@ -33,9 +36,12 @@ namespace WebApplication2.Models.Commands
 				}
 
 				return await db.WeaponList
+					.HasUniqueKey(f => f.Text)
 					.Where(w => w.Text.ToLower().Contains(query.Query) ||
 					            w.FirstComment.ToLower().Contains(query.Query))
+					
 					.OrderByDescending(w => w.StartTime)
+					.Take(100)
 					.ToListAsync();
 			}
 		}
@@ -65,11 +71,21 @@ namespace WebApplication2.Models.Commands
 
 
 
-				await botClient.SendTextMessageAsync(chatId, "Чтобы остановить отправку сообщений - нажмите на кнопку. Вам будеь показано 50 последних результатов.",
-					replyMarkup: keyboard4);
-				await Task.Delay(1100);
+				
+				
 				bool isStop = false;
-				var listt = list.Take(50);
+
+				list = list.GroupBy(f => f.Text)
+					.Select(g => g.First())
+					.Take(50)
+					.ToList();
+				await botClient.SendTextMessageAsync(chatId, $"Чтобы остановить отправку сообщений - нажмите на кнопку. Вам будет показано {list.Count} последних результатов.",
+					replyMarkup: keyboard4);
+				
+				await Task.Delay(1500);
+				
+				
+
 				var viewList = new List<UserViews>();
 				foreach (var lis in list)
 				{
@@ -81,8 +97,8 @@ namespace WebApplication2.Models.Commands
 				{
 					db.BulkCopy(viewList);
 				}
-
-				foreach (var lis in listt)
+				
+				foreach (var lis in list)
 				{
 					if (isStop)
 					{
@@ -91,25 +107,19 @@ namespace WebApplication2.Models.Commands
 
 					try
 					{
-						if (lis.Text == "")
+						if (lis.Text.Length > 500)
 						{
-							await botClient.SendPhotoAsync(chatId, photo: lis.Src, caption: lis.FirstComment,
+							lis.Text = lis.Text.Substring(0, 500);
+						}
+						
+						await botClient.SendPhotoAsync(chatId, photo: lis.Src, caption: lis.Text,
 								replyMarkup: new InlineKeyboardMarkup(
 									InlineKeyboardButton.WithUrl("Перейти",
 										$"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}")
 								));
-						}
-						else
-						{
-							await botClient.SendPhotoAsync(chatId, photo: lis.Src, caption: lis.Text,
-								replyMarkup: new InlineKeyboardMarkup(
-									InlineKeyboardButton.WithUrl("Перейти",
-										$"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}")
-								));
-						}
 
-						await Task.Delay(new Random().Next(300, 500));
-						if (listt.Last() == lis)
+						await Task.Delay(1000);
+						if (list.Last() == lis)
 						{
 
 							ReplyKeyboardMarkup ReplyKeyboard = new[]
@@ -122,6 +132,7 @@ namespace WebApplication2.Models.Commands
 							await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны",
 								replyMarkup: ReplyKeyboard);
 						}
+						
 
 						if (await GetLatQueryText(chatId.ToString()) == string.Empty)
 						{
@@ -131,7 +142,7 @@ namespace WebApplication2.Models.Commands
 					}
 					catch (Exception ex)
 					{
-
+						
 					}
 
 				}
