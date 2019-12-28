@@ -32,8 +32,8 @@ namespace WebApplication2.Models.Commands
                     if (query.IsWatching == 1)
                     {
                         query.IsWatching = 0;
-                        await db.UpdateAsync(query);
-                        await botClient.SendTextMessageAsync(chatId, $"Уведомления по старому запросу \"{query.Query}\" были отключены");
+                        db.UpdateAsync(query);
+                        botClient.SendTextMessageAsync(chatId, $"Уведомления по старому запросу \"{query.Query}\" были отключены");
                     }
                 }
 
@@ -71,7 +71,7 @@ namespace WebApplication2.Models.Commands
 
 
 
-                await AddQuery(chatId.ToString(), message.Text);
+                AddQuery(chatId.ToString(), message.Text);
             }
             
             async Task AddQuery(string chatId, string query)

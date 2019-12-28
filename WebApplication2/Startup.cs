@@ -34,10 +34,9 @@ namespace WebApplication2
             services.AddDbContext<ApplicationContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             
-            services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddHangfireServer();
+            //services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("DefaultConnection")));
+            //services.AddHangfireServer();
             
-            services.AddHostedService<VkBoy>();
 
 
 
@@ -56,7 +55,7 @@ namespace WebApplication2
             app.UseHttpsRedirection();
 
             app.UseRouting();
-            app.UseHangfireDashboard();
+            //app.UseHangfireDashboard();
 
             app.UseAuthorization();
 
@@ -65,21 +64,21 @@ namespace WebApplication2
             
 
             
-            RecurringJob.AddOrUpdate(
+            //RecurringJob.AddOrUpdate(
 	            
-                () => HangfireTasks.Test(),
-                Cron.MinuteInterval(1));
+                //() => HangfireTasks.Test(),
+                //Cron.MinuteInterval(1));
             
-            RecurringJob.AddOrUpdate(
+            //RecurringJob.AddOrUpdate(
 	            
-                () => HangfireTasks.Work(),
-                Cron.MinuteInterval(10));
+                //() => HangfireTasks.Work(),
+                //Cron.MinuteInterval(10));
                 
 
-            RecurringJob.AddOrUpdate(
+            //RecurringJob.AddOrUpdate(
 
-                () => VkBoy.CheckNewWeapon(),
-                Cron.MinuteInterval(15));
+                //() => VkBoy.CheckNewWeapon(),
+                //Cron.MinuteInterval(11));
 
 
             //Bot Configurations

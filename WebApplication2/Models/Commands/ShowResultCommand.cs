@@ -79,6 +79,7 @@ namespace WebApplication2.Models.Commands
 					.Select(g => g.First())
 					.Take(50)
 					.ToList();
+				
 				await botClient.SendTextMessageAsync(chatId, $"Чтобы остановить отправку сообщений - нажмите на кнопку. Вам будет показано {list.Count} последних результатов.",
 					replyMarkup: keyboard4);
 				
@@ -104,9 +105,8 @@ namespace WebApplication2.Models.Commands
 					{
 						break;
 					}
-
-					try
-					{
+					
+					
 						if (lis.Text.Length > 500)
 						{
 							lis.Text = lis.Text.Substring(0, 500);
@@ -118,7 +118,7 @@ namespace WebApplication2.Models.Commands
 										$"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}")
 								));
 
-						await Task.Delay(1000);
+						
 						if (list.Last() == lis)
 						{
 
@@ -138,12 +138,8 @@ namespace WebApplication2.Models.Commands
 						{
 							isStop = true;
 						}
-
-					}
-					catch (Exception ex)
-					{
 						
-					}
+						await Task.Delay(1400);
 
 				}
 			}

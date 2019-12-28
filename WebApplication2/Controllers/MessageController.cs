@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 using WebApplication2.Models;
 
 namespace WebApplication2.Controllers
@@ -18,13 +19,6 @@ namespace WebApplication2.Controllers
     [ApiController]
     public class MessageController : ControllerBase
     {
-        public static readonly JsonSerializerSettings ConverterSettings = new JsonSerializerSettings
-        {
-            ContractResolver = new DefaultContractResolver()
-            {
-                NamingStrategy = new SnakeCaseNamingStrategy()
-            }
-        };
 
         [HttpGet]
         [Route("/get")]
@@ -32,15 +26,23 @@ namespace WebApplication2.Controllers
         {
             return "123123";
         }
-        
 
         [HttpPost]
-        [Route("/post")]
-        public async Task<OkResult> Post([FromBody]Update update)
+        [Route("/send")]
+        public async Task Send(string chatId, string photo, string caption, string link)
         {
-
-            if (update == null) return Ok();
+            var botClient = await Bot.GetBotClientAsync();
             
+            botClient.SendPhotoAsync(chatId, photo: photo, caption: caption,
+                replyMarkup: new InlineKeyboardMarkup(
+                    InlineKeyboardButton.WithUrl("Перейти",
+                        $"{link}")
+                ));
+        }
+        
+        [NonAction]
+        public async Task Work(Update update)
+        {
             var commands = Bot.Commands;
             var message = update.Message;
             var botClient = await Bot.GetBotClientAsync();
@@ -52,7 +54,7 @@ namespace WebApplication2.Controllers
                 if (command.Contains(message))
                 {
                     isCommand = true;
-                    command.Execute(message, botClient);
+                    await command.Execute(message, botClient);
 
                     break;
                 }
@@ -60,9 +62,20 @@ namespace WebApplication2.Controllers
 
             if (!isCommand)
             {
-                commands[0].Execute(message, botClient);
+                await commands[0].Execute(message, botClient); 
             }
+        }
+        
 
+        [HttpPost]
+        [Route("/post")]
+        public async Task<OkResult> Post([FromBody]Update update)
+        {
+            if (update == null) return Ok();
+
+            Task.Run(() => Work(update));
+            
+            
             return Ok();
 
         }
