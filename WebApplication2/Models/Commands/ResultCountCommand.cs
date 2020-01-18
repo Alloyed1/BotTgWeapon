@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB;
+using LinqToDB.Data;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -32,8 +34,8 @@ namespace WebApplication2.Models.Commands
                     if (query.IsWatching == 1)
                     {
                         query.IsWatching = 0;
-                        db.UpdateAsync(query);
-                        botClient.SendTextMessageAsync(chatId, $"Уведомления по старому запросу \"{query.Query}\" были отключены");
+                        await db.UpdateAsync(query);
+                        await botClient.SendTextMessageAsync(chatId, $"Уведомления по старому запросу \"{query.Query}\" были отключены");
                     }
                 }
 
@@ -70,14 +72,43 @@ namespace WebApplication2.Models.Commands
                 }
 
 
-
-                AddQuery(chatId.ToString(), message.Text);
+                
+                await AddQuery(chatId.ToString(), message.Text);
             }
             
             async Task AddQuery(string chatId, string query)
             {
                 using(var db = new DbNorthwind())
                 {
+                    await db.ViewsTurns
+                        .Where(w => w.ChatId == int.Parse(chatId))
+                        .DeleteAsync();
+                    
+                    var list = await db.WeaponList
+                        .HasUniqueKey(f => f.Text)
+                        .Where(w => w.Text.ToLower().Contains(query) ||
+                                    w.FirstComment.ToLower().Contains(query))
+					
+                        .OrderByDescending(w => w.StartTime)
+                        .Take(100)
+                        .ToListAsync();
+
+                    list = list.GroupBy(f => f.Text)
+                        .Select(g => g.First()).Take(50).ToList();
+
+                    var turnsList = new List<ViewsTurns>();
+
+                    foreach (var item in list)
+                    {
+                        turnsList.Add(new ViewsTurns()
+                        {
+                            ChatId = int.Parse(chatId),
+                            WeaponListId = item.Id,
+                        });
+                    }
+
+                    db.ViewsTurns.BulkCopy(turnsList);
+                    
                     var queryClass = await db.LastQuery.FirstOrDefaultAsync(w => w.ChatId == chatId);
                     if(queryClass == null)
                     {

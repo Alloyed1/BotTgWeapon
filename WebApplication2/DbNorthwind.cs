@@ -12,5 +12,6 @@ namespace WebApplication2
         public ITable<WeaponList> WeaponList => GetTable<WeaponList>();
         public ITable<LastQuery> LastQuery => GetTable<LastQuery>();
         public ITable<UserViews> UserViews => GetTable<UserViews>();
+        public ITable<ViewsTurns> ViewsTurns => GetTable<ViewsTurns>();
     }
 }

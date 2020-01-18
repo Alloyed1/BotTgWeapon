@@ -33,7 +33,7 @@ namespace WebApplication2.Controllers
         {
             var botClient = await Bot.GetBotClientAsync();
             
-            botClient.SendPhotoAsync(chatId, photo: photo, caption: caption,
+            await botClient.SendPhotoAsync(chatId, photo: photo, caption: caption,
                 replyMarkup: new InlineKeyboardMarkup(
                     InlineKeyboardButton.WithUrl("Перейти",
                         $"{link}")
@@ -43,27 +43,7 @@ namespace WebApplication2.Controllers
         [NonAction]
         public async Task Work(Update update)
         {
-            var commands = Bot.Commands;
-            var message = update.Message;
-            var botClient = await Bot.GetBotClientAsync();
-
-            var isCommand = false;
-
-            foreach (var command in commands)
-            {
-                if (command.Contains(message))
-                {
-                    isCommand = true;
-                    await command.Execute(message, botClient);
-
-                    break;
-                }
-            }
-
-            if (!isCommand)
-            {
-                await commands[0].Execute(message, botClient); 
-            }
+            
         }
         
 
@@ -73,7 +53,26 @@ namespace WebApplication2.Controllers
         {
             if (update == null) return Ok();
 
-            Task.Run(() => Work(update));
+            var commands = Bot.Commands;
+            var message = update.Message;
+            var botClient = await Bot.GetBotClientAsync();
+
+            var isCommand = false;
+
+            foreach (var command in commands)
+            {
+                if (!command.Contains(message)) continue;
+                
+                isCommand = true;
+                await command.Execute(message, botClient);
+
+                break;
+            }
+
+            if (!isCommand)
+            {
+                await commands[0].Execute(message, botClient); 
+            }
             
             
             return Ok();

@@ -36,7 +36,7 @@ namespace WebApplication2.Models
             };
             
 
-            var proxy = new HttpToSocks5Proxy("176.107.186.200", 44011, "qARVyF", "4fvsm1");
+            var proxy = new HttpToSocks5Proxy("176.107.176.76", 33875, "u7ZMPC", "yVD2GV");
             botClient = new TelegramBotClient(AppSettings.Key, proxy);
             await botClient.SetWebhookAsync(AppSettings.url);
             return botClient;
