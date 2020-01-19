@@ -32,7 +32,7 @@ namespace WebApplication2
         {
             
             services.AddDbContext<ApplicationContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer("Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;"));
             
             //services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("DefaultConnection")));
             //services.AddHangfireServer();
@@ -52,11 +52,8 @@ namespace WebApplication2
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
-
             app.UseRouting();
             //app.UseHangfireDashboard();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });

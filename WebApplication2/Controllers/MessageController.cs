@@ -24,7 +24,8 @@ namespace WebApplication2.Controllers
         [Route("/get")]
         public async Task<string> Get()
         {
-            return "123123";
+            var bot = await Bot.GetBotClientAsync();
+            return bot.GetWebhookInfoAsync().Result.PendingUpdateCount.ToString();
         }
 
         [HttpPost]

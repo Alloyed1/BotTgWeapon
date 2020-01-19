@@ -22,7 +22,6 @@ namespace WebApplication2
                 {
                     webBuilder.ConfigureKestrel(serverOptions =>
                         {
-                            serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(20);
                         })
                         .UseStartup<Startup>();
                 });
