@@ -33,10 +33,12 @@ namespace WebApplication2
             
             services.AddDbContext<ApplicationContext>(options =>
                 options.UseSqlServer("Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;"));
-            
-            //services.AddHangfire(x => x.UseSqlServerStorage(Configuration.GetConnectionString("DefaultConnection")));
-            //services.AddHangfireServer();
-            
+            services.AddHangfire(x => x.UseSqlServerStorage("Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;"));
+            services.AddHangfireServer(options =>
+            {
+                options.WorkerCount = 2;
+            });
+
 
 
 
@@ -53,33 +55,30 @@ namespace WebApplication2
             }
 
             app.UseRouting();
-            //app.UseHangfireDashboard();
+            app.UseHangfireDashboard();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-            
-            
 
-            
-            //RecurringJob.AddOrUpdate(
-	            
-                //() => HangfireTasks.Test(),
-                //Cron.MinuteInterval(1));
-            
-            //RecurringJob.AddOrUpdate(
-	            
-                //() => HangfireTasks.Work(),
-                //Cron.MinuteInterval(10));
-                
+
+
+
+
 
             //RecurringJob.AddOrUpdate(
 
-                //() => VkBoy.CheckNewWeapon(),
-                //Cron.MinuteInterval(11));
+            //    () => HangfireTasks.Work(),
+            //    Cron.MinuteInterval(10));
+
+
+            //RecurringJob.AddOrUpdate(
+
+            //() => VkBoy.CheckNewWeapon(),
+            //Cron.MinuteInterval(11));
 
 
             //Bot Configurations
-            Bot.GetBotClientAsync().Wait();
+            Bot.GetBotClientAsync().GetAwaiter().GetResult();
         }
     }
 }

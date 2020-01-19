@@ -136,7 +136,7 @@ namespace WebApplication2.Models.Commands
 				await botClient.SendTextMessageAsync(chatId, $"Чтобы остановить отправку сообщений - нажмите на кнопку. Вам будет показано {countShow} последних результатов.",
 					replyMarkup: keyboard4);
 				
-				await Task.Delay(1500);
+				await Task.Delay(1000);
 				
 				
 

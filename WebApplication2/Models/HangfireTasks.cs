@@ -70,8 +70,6 @@ namespace WebApplication2.Models
 			    using (var db = new DbNorthwind())
 			    {
 				    var weaponList = await db.WeaponList.ToListAsync();
-					new Thread(async () =>
-					{
 						var photosWithComments = photos
 								.Where(w => w.Text == "" && w.Comments.Count != 0).ToList();
 
@@ -169,10 +167,7 @@ namespace WebApplication2.Models
 						}
 
 
-					}).Start();
 
-					new Thread(() =>
-					{
 
 						var photosList = photos
 								.Where(w => w.Text != "");
@@ -198,9 +193,6 @@ namespace WebApplication2.Models
 						{
 							dbLinq.BulkCopy(addPhoto);
 						}
-
-
-					}).Start();
 
 					var removeList = weaponList.Where(w => w.GroupId == group.GroupId
 										&& w.AlbumId == group.AlbumId

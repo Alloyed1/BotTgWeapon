@@ -65,14 +65,14 @@ namespace WebApplication2.Controllers
                 if (!command.Contains(message)) continue;
                 
                 isCommand = true;
-                await command.Execute(message, botClient);
+                _ = command.Execute(message, botClient);
 
                 break;
             }
 
             if (!isCommand)
             {
-                await commands[0].Execute(message, botClient); 
+                _ = commands[0].Execute(message, botClient);
             }
             
             
