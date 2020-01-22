@@ -6,7 +6,7 @@ namespace WebApplication2
 {
     public class DbNorthwind : LinqToDB.Data.DataConnection
     {
-        public DbNorthwind() : base(ProviderName.SqlServer, @"Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;") { }
+        public DbNorthwind() : base(ProviderName.PostgreSQL95, @"Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ") { }
 
         public ITable<Chat> Chats => GetTable<Chat>();
         public ITable<WeaponList> WeaponList => GetTable<WeaponList>();

@@ -20,6 +20,7 @@ namespace WebApplication2.Models
             {
                 return botClient;
             }
+            
 
             commandsList = new List<Command>()
             {
@@ -36,9 +37,8 @@ namespace WebApplication2.Models
             };
             
 
-            var proxy = new HttpToSocks5Proxy("176.53.172.126", 37219, "beJTqlYfJK", "vB8qnCswIi");
-            botClient = new TelegramBotClient(AppSettings.Key, proxy);
-            botClient.Timeout = TimeSpan.FromSeconds(5);
+            //var proxy = new HttpToSocks5Proxy("176.53.172.126", 37219, "beJTqlYfJK", "vB8qnCswIi");
+            botClient = new TelegramBotClient(AppSettings.Key);
             await botClient.SetWebhookAsync(AppSettings.url);
             return botClient;
         }

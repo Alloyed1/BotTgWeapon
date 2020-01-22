@@ -85,6 +85,15 @@ namespace WebApplication2.Models.Commands
 			}
 		}
 
+		async Task SendPhoto(string text, string url,string scr , int chatId, TelegramBotClient botClient)
+		{
+			await botClient.SendPhotoAsync(chatId, photo: scr, caption: text,
+								replyMarkup: new InlineKeyboardMarkup(
+									InlineKeyboardButton.WithUrl("Перейти",
+										url)
+								));
+		}
+
 		public override async Task Execute(Message message, TelegramBotClient botClient)
 		{
 			var chatId = message.Chat.Id;
@@ -122,23 +131,9 @@ namespace WebApplication2.Models.Commands
 				};
 				keyboard4.ResizeKeyboard = true;
 
-
-
-				
 				
 				bool isStop = false;
 
-				//list = list.GroupBy(f => f.Text)
-					//.Select(g => g.First())
-					//.Take(50)
-					//.ToList();
-				
-				await botClient.SendTextMessageAsync(chatId, $"Чтобы остановить отправку сообщений - нажмите на кнопку. Вам будет показано {countShow} последних результатов.",
-					replyMarkup: keyboard4);
-				
-				await Task.Delay(1000);
-				
-				
 
 				var viewList = new List<UserViews>();
 				foreach (var lis in list)
@@ -159,41 +154,41 @@ namespace WebApplication2.Models.Commands
 						break;
 					}
 					
-					
 						if (lis.Text.Length > 450)
 						{
 							lis.Text = lis.Text.Substring(0, 450);
 						}
 
 						lis.Text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {lis.StartTime}";
-						
-						await botClient.SendPhotoAsync(chatId, photo: lis.Src, caption: lis.Text,
-								replyMarkup: new InlineKeyboardMarkup(
-									InlineKeyboardButton.WithUrl("Перейти",
-										$"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}")
-								));
 
-						
-						if (list.Last() == lis)
+					_ = Task.Run(() => SendPhoto(lis.Text, $"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}", lis.Src, (int)chatId, botClient));
+
+
+					if (list.Last() == lis)
 						{
 							ReplyKeyboardMarkup ReplyKeyboard = new[]
 							{
 								new[] { $"Показать результат ещё {countShow} (Осталось {count})"},
-								new []{"Помощь", "Вкл.авто уведомление"}
+								new []{"Помощь", "Вкл.авто уведомление"},
+								new[]{"Остановить"}
 							};
 							ReplyKeyboard.ResizeKeyboard = true;
-							if (count != 0)
+
+							if (count != 0) {
 								await botClient.SendTextMessageAsync(chatId, $"Нажмите на кнопку, чтобы показать ещё {countShow}",
 									replyMarkup: ReplyKeyboard);
+							}
+
 
 							else
 							{
 								ReplyKeyboard = new[]
 								{
-									new []{"Вкл.авто уведомление"},
-									new[]{"Помощь"}
-								};
+										new []{"Вкл.авто уведомление"},
+										new[]{"Помощь"}
+									};
 								ReplyKeyboard.ResizeKeyboard = true;
+							Thread.Sleep(250);
 								await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны, сделайте повторный запрос или включите уведомления по этому.",
 									replyMarkup: ReplyKeyboard);
 							}
@@ -206,8 +201,6 @@ namespace WebApplication2.Models.Commands
 							isStop = true;
 						}
 						
-						await Task.Delay(1000);
-
 				}
 			}
 

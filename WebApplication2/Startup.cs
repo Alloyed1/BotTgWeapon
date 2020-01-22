@@ -15,6 +15,7 @@ using WebApplication2.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Hangfire.SqlServer;
 
 namespace WebApplication2
 {
@@ -32,15 +33,25 @@ namespace WebApplication2
         {
             
             services.AddDbContext<ApplicationContext>(options =>
-                options.UseSqlServer("Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;"));
-            services.AddHangfire(x => x.UseSqlServerStorage("Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;"));
-            services.AddHangfireServer(options =>
-            {
-                options.WorkerCount = 2;
-            });
+                options.UseNpgsql("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
+            //services.AddHangfire(configuration => configuration
+            //    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            //    .UseSimpleAssemblyNameTypeSerializer()
+            //    .UseRecommendedSerializerSettings()
+            //    .UseSqlServerStorage("Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;", new SqlServerStorageOptions
+            //    {
+            //        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+            //        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+            //        QueuePollInterval = TimeSpan.Zero,
+            //        UseRecommendedIsolationLevel = true,
+            //        UsePageLocksOnDequeue = true,
+            //        DisableGlobalLocks = true
+            //    }));
+
+            //services.AddHangfireServer();
 
 
-
+            services.AddMemoryCache();
 
             services.AddControllers().AddNewtonsoftJson();
         }
@@ -51,24 +62,20 @@ namespace WebApplication2
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseDeveloperExceptionPage(); 
             }
 
             app.UseRouting();
-            app.UseHangfireDashboard();
-            app.UseAuthorization();
+            //app.UseHangfireDashboard();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-
-
-
-
+            
 
 
             //RecurringJob.AddOrUpdate(
 
-            //    () => HangfireTasks.Work(),
-            //    Cron.MinuteInterval(10));
+            //    () => HangfireTasks.Test(),
+            //    Cron.MinuteInterval(2));
 
 
             //RecurringJob.AddOrUpdate(

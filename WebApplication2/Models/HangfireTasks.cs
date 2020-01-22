@@ -8,17 +8,125 @@ using LinqToDB.Data;
 using VkNet;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
+using VkNet.Model.Attachments;
 using VkNet.Model.RequestParams;
 
 namespace WebApplication2.Models
 {
     public  class HangfireTasks
     {
-	    public static async Task Test()
+	    public static async Task ParseAllAlbumsVkAsync()
 	    {
-		    var bot = await Bot.GetBotClientAsync();
-		    await bot.SendTextMessageAsync(466739920, "test");
-	    }
+		    Console.WriteLine("Start");
+			var active_user = 1;
+			var userList = new List<string>
+			{
+				"2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
+				"74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
+				"bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
+			};
+
+			var api = new VkApi();
+			try
+			{
+				await api.AuthorizeAsync(new ApiAuthParams()
+				{
+					AccessToken = userList[active_user]
+				});
+			}
+			catch (Exception ex)
+			{
+				await api.LogOutAsync();
+				api = new VkApi();
+
+				active_user++;
+				await api.AuthorizeAsync(new ApiAuthParams()
+				{
+					AccessToken = userList[active_user]
+				});
+			}
+			Console.WriteLine("Auth");
+			var groupList = new List<GroupAlbum>
+				{
+					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426992},
+					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426935},
+					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426857},
+					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924509},
+					new GroupAlbum() {GroupId = -11571122, AlbumId = 218215712},
+					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924703},
+					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
+					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
+					new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
+					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419956},
+					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
+					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
+				};
+			var addList = new List<WeaponList>();
+			var removeList = new List<WeaponList>();
+			var weaponListDb = new List<WeaponList>();
+
+			using (var db = new DbNorthwind())
+			{
+				weaponListDb = await db.WeaponList.ToListAsync();
+			}
+			Console.WriteLine("GetWeapon");
+			foreach (var group in groupList)
+			{
+				var photos = new List<Photo>();
+				try
+				{
+					photos = api.Photo.Get(new PhotoGetParams()
+					{
+						AlbumId = PhotoAlbumType.Id(group.AlbumId),
+						Reversed = true,
+						Extended = true,
+						Count = 1000,
+						OwnerId = group.GroupId
+					}).ToList();
+				}
+				
+				catch (Exception ex2)
+				{
+					continue;
+				}
+				Console.WriteLine("GetWeapon");
+				
+					
+					foreach (var photo in photos
+						.Where(w => weaponListDb.FirstOrDefault(p => p.Src == w.Sizes.OrderByDescending(w => w.Height).First().Src.ToString()) == null))
+					{
+						addList.Add(new WeaponList()
+						{
+							Text = photo.Text,
+							PhotoId = (long)photo.Id,
+							AlbumId = (long)photo.AlbumId,
+							GroupId = (long)photo.OwnerId,
+							Src = photo.Sizes.OrderByDescending(w => w.Height).First().Src.ToString(),
+							StartTime = Convert.ToDateTime(photo.CreateTime)
+						});
+					}
+					
+					
+					var localRemoveList = weaponListDb.Where(w => w.GroupId == group.GroupId
+					                                       && w.AlbumId == group.AlbumId
+					                                       && photos.FirstOrDefault(f => f.Id == w.PhotoId) == null).ToList();
+					
+					removeList.AddRange(localRemoveList);
+					Console.WriteLine("AddRemoveAndAdd");
+
+					
+					
+			}
+
+			using (var db = new DbNorthwind())
+			{
+				db.BulkCopy(addList);
+				await db.DeleteAsync(removeList);
+			}
+			Console.WriteLine("Ok!");
+
+
+		}
 	    
         public static async Task Work()
 	    {
@@ -209,5 +317,10 @@ namespace WebApplication2.Models
 
 
 	    }
+
+		public static async Task Test()
+		{
+			Console.WriteLine("123123");
+		}
     }
 }
