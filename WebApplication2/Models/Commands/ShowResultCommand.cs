@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
+using Microsoft.Extensions.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -16,6 +17,8 @@ namespace WebApplication2.Models.Commands
 	public class ShowResultCommand : Command
 	{
 		public override string Name => "Показать результат";
+		public Settings settings { get; set; }
+		
 
 		public override bool Contains(Message message)
 		{
@@ -38,7 +41,7 @@ namespace WebApplication2.Models.Commands
 				var turnsList = (await db.ViewsTurns
 						.Where(w => w.ChatId == int.Parse(chatId))
 						.ToListAsync())
-					.Take(5)
+					.Take(settings.CountMessage)
 					.ToList();
 				
 				
@@ -61,7 +64,7 @@ namespace WebApplication2.Models.Commands
 				var turnsList = (await db.ViewsTurns
 						.Where(w => w.ChatId == int.Parse(chatId))
 						.ToListAsync())
-					.Take(5)
+					.Take(settings.CountMessage)
 					.ToList();
 				
 				foreach (var item in turnsList)
@@ -94,8 +97,10 @@ namespace WebApplication2.Models.Commands
 								));
 		}
 
-		public override async Task Execute(Message message, TelegramBotClient botClient)
+		public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
 		{
+			settings = configuration.GetSection("Settings").Get<Settings>();
+			
 			var chatId = message.Chat.Id;
 			var list = await GetLastQuery(chatId.ToString());
 			
@@ -108,8 +113,8 @@ namespace WebApplication2.Models.Commands
 			}
 			
 
-			var countShow = 5;
-			if (count >= countShow) countShow = 5;
+			var countShow = settings.CountMessage;
+			if (count >= countShow) countShow = settings.CountMessage;
 			else countShow = count;
 
 			
@@ -161,7 +166,7 @@ namespace WebApplication2.Models.Commands
 
 						lis.Text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {lis.StartTime}";
 
-					_ = Task.Run(() => SendPhoto(lis.Text, $"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}", lis.Src, (int)chatId, botClient));
+					 await SendPhoto(lis.Text, $"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}", lis.Src, (int)chatId, botClient);
 
 
 					if (list.Last() == lis)
@@ -188,7 +193,6 @@ namespace WebApplication2.Models.Commands
 										new[]{"Помощь"}
 									};
 								ReplyKeyboard.ResizeKeyboard = true;
-							Thread.Sleep(250);
 								await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны, сделайте повторный запрос или включите уведомления по этому.",
 									replyMarkup: ReplyKeyboard);
 							}

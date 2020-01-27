@@ -22,7 +22,7 @@ namespace WebApplication2.Models.Commands
 
             return message.Text.Contains(this.Name);
         }
-        public override async Task Execute(Message message, TelegramBotClient botClient)
+        public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             using (var db = new DbNorthwind())
             {

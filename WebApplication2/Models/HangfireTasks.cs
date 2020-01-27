@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
+using Newtonsoft.Json;
+using RestSharp;
 using VkNet;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
@@ -15,7 +17,61 @@ namespace WebApplication2.Models
 {
     public  class HangfireTasks
     {
-	    public static async Task ParseAllAlbumsVkAsync()
+		public partial class Temperatures
+		{
+			[JsonProperty("response")]
+			public Response Response { get; set; }
+		}
+
+		public partial class Response
+		{
+			[JsonProperty("count")]
+			public long Count { get; set; }
+
+			[JsonProperty("items")]
+			public List<Item> Items { get; set; }
+		}
+
+		public partial class Item
+		{
+			[JsonProperty("id")]
+			public long Id { get; set; }
+
+			[JsonProperty("album_id")]
+			public long AlbumId { get; set; }
+
+			[JsonProperty("owner_id")]
+			public long OwnerId { get; set; }
+
+			[JsonProperty("user_id")]
+			public long UserId { get; set; }
+
+			[JsonProperty("sizes")]
+			public Size[] Sizes { get; set; }
+
+			[JsonProperty("text")]
+			public string Text { get; set; }
+			[JsonProperty("photo_604")]
+			public string Src { get; set; }
+			[JsonProperty("date")]
+			public long Date { get; set; }
+		}
+		public partial class Size
+		{
+			[JsonProperty("type")]
+			public string Type { get; set; }
+
+			[JsonProperty("url")]
+			public string Url { get; set; }
+
+			[JsonProperty("width")]
+			public long Width { get; set; }
+
+			[JsonProperty("height")]
+			public long Height { get; set; }
+		}
+
+		public static async Task ParseAllAlbumsVkAsync()
 	    {
 		    Console.WriteLine("Start");
 			var active_user = 1;
@@ -321,6 +377,124 @@ namespace WebApplication2.Models
 		public static async Task Test()
 		{
 			Console.WriteLine("123123");
+		}
+		public static DateTime UnixTimeToDateTime(long unixtime)
+		{
+			DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+			dtDateTime = dtDateTime.AddSeconds(unixtime).ToLocalTime();
+			return dtDateTime;
+		}
+		public static async Task ParsePhoto()
+		{
+			Console.WriteLine("Start");
+			var active_user = 1;
+			var userList = new List<string>
+			{
+				"2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
+				"74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
+				"bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
+			};
+
+			var groupList = new List<GroupAlbum>
+			{
+					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426857},
+					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924509},
+					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426992},
+					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426935},
+					new GroupAlbum() {GroupId = -11571122, AlbumId = 218215712},
+					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924703},
+					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
+					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
+					new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
+					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419956},
+					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
+					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
+			};
+			var addList = new List<WeaponList>();
+			var removeList = new List<WeaponList>();
+			var weaponListDb = new List<WeaponList>();
+
+			using (var db = new DbNorthwind())
+			{
+				weaponListDb = await db.WeaponList.ToListAsync();
+			}
+			Console.WriteLine("GetWeapon");
+			var client = new RestClient("https://api.vk.com/method");
+			foreach (var group in groupList)
+			{
+				var request = new RestRequest("photos.get");
+
+				request.AddQueryParameter("access_token", userList[active_user]);
+				request.AddQueryParameter("owner_id", group.GroupId.ToString());
+				request.AddQueryParameter("album_id", group.AlbumId.ToString());
+				request.AddQueryParameter("rev", "0");
+				request.AddQueryParameter("extended", "1");
+				request.AddQueryParameter("count", "1000");
+				request.AddQueryParameter("v", "5.52");
+
+				Thread.Sleep(200);
+
+				var res = (await client.ExecuteAsync(request)).Content;
+				var photos = new Temperatures();
+				photos = JsonConvert.DeserializeObject<Temperatures>(res);
+				if (photos.Response == null)
+				{
+					continue;
+				}
+
+				Console.WriteLine("PhotosCount " + photos.Response.Items.Count);
+
+				if (photos.Response.Items.Any())
+				{
+					var photosList = new List<Item>();
+					foreach (var ph in photos.Response.Items)
+					{
+
+						if (weaponListDb.FirstOrDefault(f => f.Src == ph.Src) == null)
+						{
+							photosList.Add(ph);
+						}
+
+
+					}
+					foreach (var photo in photosList)
+					{
+						addList.Add(new WeaponList()
+						{
+							Text = photo.Text,
+							PhotoId = (long)photo.Id,
+							AlbumId = (long)photo.AlbumId,
+							GroupId = (long)photo.OwnerId,
+							Src = photo.Src,
+							StartTime = UnixTimeToDateTime(photo.Date)
+						});
+					}
+
+					var localRemoveList = weaponListDb.Where(w => w.GroupId == group.GroupId
+														   && w.AlbumId == group.AlbumId
+														   && photos.Response.Items.FirstOrDefault(f => f.Id == w.PhotoId) == null).ToList();
+
+					removeList.AddRange(localRemoveList);
+				}
+
+				Console.WriteLine("AddRemoveAndAdd");
+				Console.WriteLine("Auth2222");
+
+
+
+			}
+
+			using (var db = new DbNorthwind())
+			{
+				db.BulkCopy(addList);
+				foreach (var item in removeList)
+				{
+					await db.WeaponList
+						.Where(w => w.Id == item.Id)
+						.DeleteAsync();
+				}
+			}
+			Console.WriteLine("Ok!");
 		}
     }
 }

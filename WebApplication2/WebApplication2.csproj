@@ -6,6 +6,7 @@
 
     <ItemGroup>
       <PackageReference Include="Hangfire" Version="1.7.7" />
+      <PackageReference Include="Hangfire.PostgreSql" Version="1.6.3" />
       <PackageReference Include="HttpToSocks5Proxy" Version="1.4.0" />
       <PackageReference Include="linq2db" Version="3.0.0-preview.1" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0-preview3.19554.8" />
@@ -14,8 +15,10 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.1" />
       <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.1" />
+      <PackageReference Include="RestSharp" Version="106.10.1" />
       <PackageReference Include="Selenium.PhantomJS.WebDriver" Version="2.1.1" />
       <PackageReference Include="Selenium.WebDriver" Version="3.13.0" />
       <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="78.0.3904.10500" />

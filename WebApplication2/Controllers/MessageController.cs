@@ -10,6 +10,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -27,17 +28,18 @@ namespace WebApplication2.Controllers
     public class MessageController : ControllerBase
     {
         private IMemoryCache _memoryCache;
-        public MessageController(IMemoryCache memoryCache)
+        private IConfiguration _configuration;
+        private int count = 0;
+        public MessageController(IMemoryCache memoryCache, IConfiguration configuration)
         {
             _memoryCache = memoryCache;
+            _configuration = configuration;
+            count =  _configuration.GetSection("Settings").Get<Settings>().CountMessage;
         }
         [HttpGet]
         [Route("/get")]
-        public async Task<string> Get()
+        public async Task<int> Get()
         {
-            var api = new VkApi();
-            string count = "123";
-           
             return count;
         }
 
@@ -54,47 +56,6 @@ namespace WebApplication2.Controllers
                 ));
         }
         
-        [NonAction]
-        public async Task Work(Update update)
-        {
-            
-        }
-
-        //[HttpGet]
-        //[Route("/update")]
-        //public async Task<string> Update()
-        //{
-        //    using(var db = new DbNorthwind())
-        //    {
-        //        using(var sr = new StreamReader(@"D:\weaponlist.txt"))
-        //        {
-        //            var text = sr.ReadToEnd();
-        //            var list = JsonConvert.DeserializeObject<IEnumerable<WeaponList>>(text);
-        //            db.WeaponList.Delete();
-        //            db.WeaponList.BulkCopy(list);
-        //            return list.Count().ToString();
-
-        //        }
-                
-
-        //        //var list = db.WeaponList.ToList();
-        //        //var text = JsonConvert.SerializeObject(list, Formatting.Indented);
-        //        //var f = new FileInfo(@"D:\weaponlist.txt");
-        //        //if (f.Exists)
-        //        //{
-        //        //    using(var sr = new StreamWriter(@"D:\weaponlist.txt"))
-        //        //    {
-        //        //        sr.Write(text);
-        //        //    }
-        //        //    return "Ok";
-        //        //}
-        //        //else
-        //        //{
-        //        //    return "nonexist";
-        //        //}
-        //    }
-        //}
-        
 
         [HttpPost]
         [Route("/post")]
@@ -108,7 +69,7 @@ namespace WebApplication2.Controllers
             {
                 _memoryCache.Set(update.Message.Chat.Id, "1", new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(800)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(600)
                 });
             }
             else
@@ -129,14 +90,14 @@ namespace WebApplication2.Controllers
                 if (!command.Contains(message)) continue;
                 
                 isCommand = true;
-                _ = Task.Run(() => command.Execute(message, botClient));
+                _ = Task.Run(() => command.Execute(message, botClient, _configuration));
 
                 break;
             }
 
             if (!isCommand)
             {
-                await commands[0].Execute(message, botClient);
+                await commands[0].Execute(message, botClient, _configuration);
             }
 
             return Ok();

@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Hangfire.SqlServer;
+using Hangfire.PostgreSql;
 
 namespace WebApplication2
 {
@@ -34,25 +35,12 @@ namespace WebApplication2
             
             services.AddDbContext<ApplicationContext>(options =>
                 options.UseNpgsql("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
-            //services.AddHangfire(configuration => configuration
-            //    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-            //    .UseSimpleAssemblyNameTypeSerializer()
-            //    .UseRecommendedSerializerSettings()
-            //    .UseSqlServerStorage("Data Source=wpl33.hosting.reg.ru;Initial Catalog=u0865575_dbdb;User Id=u0865575_userDb;Password=J59&zx9i;", new SqlServerStorageOptions
-            //    {
-            //        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-            //        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-            //        QueuePollInterval = TimeSpan.Zero,
-            //        UseRecommendedIsolationLevel = true,
-            //        UsePageLocksOnDequeue = true,
-            //        DisableGlobalLocks = true
-            //    }));
 
-            //services.AddHangfireServer();
+            //services.AddHangfire(config =>
+            //    config.UsePostgreSqlStorage("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
 
 
             services.AddMemoryCache();
-
             services.AddControllers().AddNewtonsoftJson();
         }
 
@@ -66,6 +54,8 @@ namespace WebApplication2
             }
 
             app.UseRouting();
+
+            //app.UseHangfireServer();
             //app.UseHangfireDashboard();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
@@ -73,9 +63,12 @@ namespace WebApplication2
 
 
             //RecurringJob.AddOrUpdate(
-
             //    () => HangfireTasks.Test(),
             //    Cron.MinuteInterval(2));
+
+            //RecurringJob.AddOrUpdate(
+            //    () => HangfireTasks.ParsePhoto(),
+            //    Cron.MinuteInterval(8));
 
 
             //RecurringJob.AddOrUpdate(
