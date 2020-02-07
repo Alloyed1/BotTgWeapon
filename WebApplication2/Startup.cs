@@ -36,8 +36,8 @@ namespace WebApplication2
             services.AddDbContext<ApplicationContext>(options =>
                 options.UseNpgsql("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
 
-            //services.AddHangfire(config =>
-            //    config.UsePostgreSqlStorage("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
+           services.AddHangfire(config =>
+                config.UsePostgreSqlStorage("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
 
 
             services.AddMemoryCache();
@@ -53,10 +53,14 @@ namespace WebApplication2
                 app.UseDeveloperExceptionPage(); 
             }
 
-            app.UseRouting();
+            app.UseRouting(); 
+            var documentOptions = new BackgroundJobServerOptions
+            {
+                WorkerCount = 15,
+            };
 
-            //app.UseHangfireServer();
-            //app.UseHangfireDashboard();
+            app.UseHangfireServer(documentOptions);
+            app.UseHangfireDashboard();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
             
@@ -73,12 +77,18 @@ namespace WebApplication2
 
             //RecurringJob.AddOrUpdate(
 
-            //() => VkBoy.CheckNewWeapon(),
-            //Cron.MinuteInterval(11));
+           // () => HangfireTasks.ParseAllAlbumsVkAsync(),
+            //Cron.MinuteInterval(5));
+
+            //RecurringJob.AddOrUpdate(
+
+            //() => HangfireTasks.ParseComment(),
+            //Cron.MinuteInterval(1));
+
 
 
             //Bot Configurations
-            Bot.GetBotClientAsync().GetAwaiter().GetResult();
+            //Bot.GetBotClientAsync().GetAwaiter().GetResult();
         }
     }
 }

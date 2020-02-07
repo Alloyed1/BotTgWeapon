@@ -34,38 +34,27 @@ namespace WebApplication2.Controllers
         {
             _memoryCache = memoryCache;
             _configuration = configuration;
-            count =  _configuration.GetSection("Settings").Get<Settings>().CountMessage;
+            count = _configuration.GetSection("Settings").Get<Settings>().CountMessage;
         }
         [HttpGet]
         [Route("/get")]
         public async Task<int> Get()
         {
-            return count;
+            using(var db = new DbNorthwind())
+            {
+                return await db.WeaponList.Where(w => w.Text == "").CountAsync();
+            }
         }
-
-        [HttpPost]
-        [Route("/send")]
-        public async Task Send(string chatId, string photo, string caption, string link)
-        {
-            var botClient = await Bot.GetBotClientAsync();
-            
-            await botClient.SendPhotoAsync(chatId, photo: photo, caption: caption,
-                replyMarkup: new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithUrl("Перейти",
-                        $"{link}")
-                ));
-        }
-        
 
         [HttpPost]
         [Route("/post")]
         public async Task<OkResult> Post([FromBody]Update update)
         {
-            
+
             if (update == null) return Ok();
 
             string cache = "";
-            if(!_memoryCache.TryGetValue(update.Message.Chat.Id, out cache))
+            if (!_memoryCache.TryGetValue(update.Message.Chat.Id, out cache))
             {
                 _memoryCache.Set(update.Message.Chat.Id, "1", new MemoryCacheEntryOptions
                 {
@@ -77,7 +66,7 @@ namespace WebApplication2.Controllers
                 return Ok();
             }
 
-            
+
 
             var commands = Bot.Commands;
             var message = update.Message;
@@ -88,7 +77,7 @@ namespace WebApplication2.Controllers
             foreach (var command in commands)
             {
                 if (!command.Contains(message)) continue;
-                
+
                 isCommand = true;
                 _ = Task.Run(() => command.Execute(message, botClient, _configuration));
 
@@ -103,5 +92,6 @@ namespace WebApplication2.Controllers
             return Ok();
 
         }
+
     }
 }

@@ -7,6 +7,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using Newtonsoft.Json;
 using RestSharp;
+using RestSharp.Serialization.Json;
 using VkNet;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
@@ -17,408 +18,180 @@ namespace WebApplication2.Models
 {
     public  class HangfireTasks
     {
-		public partial class Temperatures
-		{
-			[JsonProperty("response")]
-			public Response Response { get; set; }
-		}
-
-		public partial class Response
-		{
-			[JsonProperty("count")]
-			public long Count { get; set; }
-
-			[JsonProperty("items")]
-			public List<Item> Items { get; set; }
-		}
-
-		public partial class Item
-		{
-			[JsonProperty("id")]
-			public long Id { get; set; }
-
-			[JsonProperty("album_id")]
-			public long AlbumId { get; set; }
-
-			[JsonProperty("owner_id")]
-			public long OwnerId { get; set; }
-
-			[JsonProperty("user_id")]
-			public long UserId { get; set; }
-
-			[JsonProperty("sizes")]
-			public Size[] Sizes { get; set; }
-
-			[JsonProperty("text")]
-			public string Text { get; set; }
-			[JsonProperty("photo_604")]
-			public string Src { get; set; }
-			[JsonProperty("date")]
-			public long Date { get; set; }
-		}
-		public partial class Size
-		{
-			[JsonProperty("type")]
-			public string Type { get; set; }
-
-			[JsonProperty("url")]
-			public string Url { get; set; }
-
-			[JsonProperty("width")]
-			public long Width { get; set; }
-
-			[JsonProperty("height")]
-			public long Height { get; set; }
-		}
-
-		public static async Task ParseAllAlbumsVkAsync()
+	    static List<string> userList = new List<string>
 	    {
-		    Console.WriteLine("Start");
-			var active_user = 1;
-			var userList = new List<string>
-			{
-				"2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
-				"74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
-				"bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
-			};
+		    "2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
+		    "74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
+		    "bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
+	    };
 
-			var api = new VkApi();
-			try
-			{
-				await api.AuthorizeAsync(new ApiAuthParams()
-				{
-					AccessToken = userList[active_user]
-				});
-			}
-			catch (Exception ex)
-			{
-				await api.LogOutAsync();
-				api = new VkApi();
-
-				active_user++;
-				await api.AuthorizeAsync(new ApiAuthParams()
-				{
-					AccessToken = userList[active_user]
-				});
-			}
-			Console.WriteLine("Auth");
-			var groupList = new List<GroupAlbum>
-				{
-					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426992},
-					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426935},
-					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426857},
-					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924509},
-					new GroupAlbum() {GroupId = -11571122, AlbumId = 218215712},
-					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924703},
-					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
-					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
-					new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
-					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419956},
-					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
-					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
-				};
-			var addList = new List<WeaponList>();
-			var removeList = new List<WeaponList>();
-			var weaponListDb = new List<WeaponList>();
-
-			using (var db = new DbNorthwind())
-			{
-				weaponListDb = await db.WeaponList.ToListAsync();
-			}
-			Console.WriteLine("GetWeapon");
-			foreach (var group in groupList)
-			{
-				var photos = new List<Photo>();
-				try
-				{
-					photos = api.Photo.Get(new PhotoGetParams()
-					{
-						AlbumId = PhotoAlbumType.Id(group.AlbumId),
-						Reversed = true,
-						Extended = true,
-						Count = 1000,
-						OwnerId = group.GroupId
-					}).ToList();
-				}
-				
-				catch (Exception ex2)
-				{
-					continue;
-				}
-				Console.WriteLine("GetWeapon");
-				
-					
-					foreach (var photo in photos
-						.Where(w => weaponListDb.FirstOrDefault(p => p.Src == w.Sizes.OrderByDescending(w => w.Height).First().Src.ToString()) == null))
-					{
-						addList.Add(new WeaponList()
-						{
-							Text = photo.Text,
-							PhotoId = (long)photo.Id,
-							AlbumId = (long)photo.AlbumId,
-							GroupId = (long)photo.OwnerId,
-							Src = photo.Sizes.OrderByDescending(w => w.Height).First().Src.ToString(),
-							StartTime = Convert.ToDateTime(photo.CreateTime)
-						});
-					}
-					
-					
-					var localRemoveList = weaponListDb.Where(w => w.GroupId == group.GroupId
-					                                       && w.AlbumId == group.AlbumId
-					                                       && photos.FirstOrDefault(f => f.Id == w.PhotoId) == null).ToList();
-					
-					removeList.AddRange(localRemoveList);
-					Console.WriteLine("AddRemoveAndAdd");
-
-					
-					
-			}
-
-			using (var db = new DbNorthwind())
-			{
-				db.BulkCopy(addList);
-				await db.DeleteAsync(removeList);
-			}
-			Console.WriteLine("Ok!");
-
-
-		}
+	    static List<GroupAlbum> groupList = new List<GroupAlbum>
+	    {
+		    new GroupAlbum() {GroupId = -76629546, AlbumId = 203426857},
+		    new GroupAlbum() {GroupId = -11571122, AlbumId = 229924509},
+		    new GroupAlbum() {GroupId = -76629546, AlbumId = 203426992},
+		    new GroupAlbum() {GroupId = -76629546, AlbumId = 203426935},
+		    new GroupAlbum() {GroupId = -11571122, AlbumId = 218215712},
+		    new GroupAlbum() {GroupId = -11571122, AlbumId = 229924703},
+		    new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
+		    new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
+		    new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
+		    //new GroupAlbum() {GroupId = -13212026, AlbumId = 270419956},
+		    new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
+		    new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
+	    };
 	    
-        public static async Task Work()
+		
+	    public partial class Temperatures
 	    {
-		    
-		    
-		    
-		    var active_user = 0;
-		    var userList = new List<string>
-		    {
-			    "2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
-			    "74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
-			    "bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
-		    };
-
-		    var api = new VkApi();
-		    await api.AuthorizeAsync(new ApiAuthParams()
-		    {
-				AccessToken = userList[active_user]
-		    });
-
-		    var groupList = new List<GroupAlbum>
-		    {
-				new GroupAlbum() {GroupId = -76629546, AlbumId = 203426992},
-				new GroupAlbum() {GroupId = -76629546, AlbumId = 203426935},
-				new GroupAlbum() {GroupId = -76629546, AlbumId = 203426857},
-				new GroupAlbum() {GroupId = -11571122, AlbumId = 229924509},
-				new GroupAlbum() {GroupId = -11571122, AlbumId = 218215712},
-				new GroupAlbum() {GroupId = -11571122, AlbumId = 229924703},
-				new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
-				new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
-				new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
-				new GroupAlbum() {GroupId = -13212026, AlbumId = 270419956},
-				new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
-			    new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
-
-			};
-
-		    foreach (var group in groupList)
-		    {
-			    var photos = api.Photo.Get(new PhotoGetParams()
-			    {
-				    AlbumId = PhotoAlbumType.Id(group.AlbumId),
-				    Reversed = true,
-				    Extended = true,
-				    Count = 1000,
-				    OwnerId = group.GroupId
-			    });
-
-			    using (var db = new DbNorthwind())
-			    {
-				    var weaponList = await db.WeaponList.ToListAsync();
-						var photosWithComments = photos
-								.Where(w => w.Text == "" && w.Comments.Count != 0).ToList();
-
-						photosWithComments = photosWithComments
-							.Where(w => weaponList.FirstOrDefault(f =>
-											f.GroupId == w.OwnerId && f.AlbumId == w.AlbumId && f.PhotoId == w.Id) == null).ToList();
-						var addList = new List<WeaponList>();
-						foreach (var photo in photosWithComments)
-						{
-							
-							var weapon = new WeaponList();
-							try
-							{
-								if(api.Token == null)
-								{
-									Thread.Sleep(4000);
-								}
-								var comment = await api.Photo.GetCommentsAsync(new PhotoGetCommentsParams()
-								{
-									OwnerId = photo.OwnerId,
-									PhotoId = (ulong)photo.Id,
-									Count = 1,
-								});
-								Thread.Sleep(150);
-								weapon = new WeaponList()
-								{
-									Text = comment.First().Text,
-									PhotoId = (long)photo.Id,
-									AlbumId = (long)photo.AlbumId,
-									GroupId = (long)photo.OwnerId,
-									Src = photo.Sizes.OrderByDescending(w => w.Height).First().Src.ToString(),
-									StartTime = Convert.ToDateTime(photo.CreateTime)
-								};
-								
-							}
-							catch (Exception e)
-							{
-								await api.LogOutAsync();
-								Thread.Sleep(3000);
-								
-
-
-								if (active_user == userList.Count - 1)
-								{
-									active_user = 0;
-								}
-								else
-								{
-									active_user++;
-								}
-
-
-								await api.AuthorizeAsync(new ApiAuthParams()
-								{
-									AccessToken = userList[active_user]
-								});
-
-								var comment = await api.Photo.GetCommentsAsync(new PhotoGetCommentsParams()
-								{
-									OwnerId = photo.OwnerId,
-									PhotoId = (ulong)photo.Id,
-									Count = 1,
-								});
-								Thread.Sleep(150);
-								weapon = new WeaponList()
-								{
-									Text = comment.First().Text,
-									PhotoId = (long)photo.Id,
-									AlbumId = (long)photo.AlbumId,
-									GroupId = (long)photo.OwnerId,
-									Src = photo.Sizes.OrderByDescending(w => w.Height).First().Src.ToString(),
-									StartTime = Convert.ToDateTime(photo.CreateTime)
-								};
-
-							}
-
-							addList.Add(weapon);
-
-							using (var dbLinq = new DbNorthwind())
-							{
-								if (photo == photosWithComments.Last())
-								{
-									dbLinq.BulkCopy(addList);
-									addList = new List<WeaponList>();
-								}
-
-								if (addList.Count == 10)
-								{
-									dbLinq.BulkCopy(addList);
-									addList = new List<WeaponList>();
-								}
-							}
-							
-
-						}
-
-
-
-
-						var photosList = photos
-								.Where(w => w.Text != "");
-
-						photosList = photos
-							.Where(w => weaponList.FirstOrDefault(f =>
-											f.GroupId == w.OwnerId && f.AlbumId == w.AlbumId && f.PhotoId == w.Id) == null && w.Text != "");
-
-						var addPhoto = new List<WeaponList>();
-						foreach (var ph in photosList)
-						{
-							addPhoto.Add(new WeaponList()
-							{
-								Text = ph.Text,
-								PhotoId = (long)ph.Id,
-								AlbumId = (long)ph.AlbumId,
-								GroupId = (long)ph.OwnerId,
-								Src = ph.Sizes.OrderByDescending(w => w.Height).First().Src.ToString(),
-								StartTime = Convert.ToDateTime(ph.CreateTime)
-							});
-						}
-						using (var dbLinq = new DbNorthwind())
-						{
-							dbLinq.BulkCopy(addPhoto);
-						}
-
-					var removeList = weaponList.Where(w => w.GroupId == group.GroupId
-										&& w.AlbumId == group.AlbumId
-										&& photos.FirstOrDefault(f => f.Id == w.PhotoId) == null).ToList();
-
-					await db.WeaponList.Where(w => removeList.FirstOrDefault(w => w.PhotoId == w.PhotoId).PhotoId == w.PhotoId).DeleteAsync();
-
-						    
-					
-
-			    }
-		    }
-
-
-
+		    [JsonProperty("response")]
+		    public Response Response { get; set; }
 	    }
 
-		public static async Task Test()
+	    public partial class Response
+	    {
+		    [JsonProperty("count")]
+		    public long Count { get; set; }
+
+		    [JsonProperty("items")]
+		    public List<Item> Items { get; set; }
+	    }
+	    public partial class Item
+	    {
+		    [JsonProperty("id")]
+		    public long Id { get; set; }
+
+		    [JsonProperty("album_id")]
+		    public long AlbumId { get; set; }
+
+		    [JsonProperty("owner_id")]
+		    public long OwnerId { get; set; }
+
+		    [JsonProperty("user_id")]
+		    public long UserId { get; set; }
+
+		    [JsonProperty("sizes")]
+		    public Size[] Sizes { get; set; }
+
+			[JsonProperty("comments")]
+			public Comments Comments { get; set; }
+
+			[JsonProperty("text")]
+		    public string Text { get; set; }
+		    [JsonProperty("photo_604")]
+		    public string Src { get; set; }
+		    [JsonProperty("date")]
+		    public long Date { get; set; }
+	    }
+	    public partial class Size
+	    {
+		    [JsonProperty("type")]
+		    public string Type { get; set; }
+
+		    [JsonProperty("url")]
+		    public string Url { get; set; }
+
+		    [JsonProperty("width")]
+		    public long Width { get; set; }
+
+		    [JsonProperty("height")]
+		    public long Height { get; set; }
+	    }
+		
+
+		public class Items
 		{
-			Console.WriteLine("123123");
+			public string text { get; set; }
 		}
+
+		public class Comments
+		{
+			[JsonProperty("count")]
+			public int Count { get; set; }
+		}
+
+		
+
+		public class Responsee
+		{
+			public int count { get; set; }
+			public List<Item> items { get; set; }
+		}
+
+		public class RootObject
+		{
+			public Response response { get; set; }
+		}
+
 		public static DateTime UnixTimeToDateTime(long unixtime)
 		{
 			DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
 			dtDateTime = dtDateTime.AddSeconds(unixtime).ToLocalTime();
 			return dtDateTime;
 		}
-		public static async Task ParsePhoto()
-		{
-			Console.WriteLine("Start");
-			var active_user = 1;
-			var userList = new List<string>
-			{
-				"2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
-				"74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
-				"bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
-			};
 
-			var groupList = new List<GroupAlbum>
+		public static async Task ParseComment()
+		{
+			var listParse = new List<WeaponList>();
+			
+			var client = new RestClient("https://api.vk.com/method");
+			var active_user = 1;
+			using (var db = new DbNorthwind())
 			{
-					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426857},
-					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924509},
-					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426992},
-					new GroupAlbum() {GroupId = -76629546, AlbumId = 203426935},
-					new GroupAlbum() {GroupId = -11571122, AlbumId = 218215712},
-					new GroupAlbum() {GroupId = -11571122, AlbumId = 229924703},
-					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
-					new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
-					new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
-					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419956},
-					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
-					new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
-			};
+				listParse = await db.WeaponList
+					.Where(w => w.Text == "" && int.Parse(w.FirstComment) > 0)
+					.Take(3)
+					.ToListAsync();
+
+				foreach (var item in listParse)
+				{
+					var request = new RestRequest("photos.getComments");
+
+					request.AddQueryParameter("access_token", userList[active_user]);
+					request.AddQueryParameter("owner_id", item.GroupId.ToString());
+					request.AddQueryParameter("photo_id", item.PhotoId.ToString());
+					//request.AddQueryParameter("preview_length", "-");
+					request.AddQueryParameter("sort", "asc");
+					request.AddQueryParameter("count", "1");
+					request.AddQueryParameter("v", "5.33");
+
+					var res = await client.ExecuteAsync(request);
+
+					var reslist = JsonConvert.DeserializeObject<RootObject>(res.Content);
+					if (reslist.response != null)
+					{
+						if(reslist.response.Count != 0)
+						{
+							item.Text = reslist.response.Items.FirstOrDefault()?.Text;
+							await db.WeaponList.Where(w => w.Id == item.Id)
+								.Set(s => s.Text, item.Text)
+								.UpdateAsync();
+						}
+						
+					}
+					
+				}
+				Console.WriteLine("Koool!");
+				
+				
+
+			}
+		}
+
+		public static async Task ParseAllAlbumsVkAsync()
+		{
+			
+			var active_user = 1;
+			
 			var addList = new List<WeaponList>();
 			var removeList = new List<WeaponList>();
 			var weaponListDb = new List<WeaponList>();
 
 			using (var db = new DbNorthwind())
 			{
-				weaponListDb = await db.WeaponList.ToListAsync();
+				weaponListDb = db.WeaponList.ToList();
 			}
-			Console.WriteLine("GetWeapon");
+			Console.WriteLine("WeaponGet");
 			var client = new RestClient("https://api.vk.com/method");
 			foreach (var group in groupList)
 			{
@@ -427,22 +200,23 @@ namespace WebApplication2.Models
 				request.AddQueryParameter("access_token", userList[active_user]);
 				request.AddQueryParameter("owner_id", group.GroupId.ToString());
 				request.AddQueryParameter("album_id", group.AlbumId.ToString());
-				request.AddQueryParameter("rev", "0");
+				request.AddQueryParameter("rev", "1");
 				request.AddQueryParameter("extended", "1");
 				request.AddQueryParameter("count", "1000");
 				request.AddQueryParameter("v", "5.52");
+				request.AddQueryParameter("extended", "1");
 
-				Thread.Sleep(200);
-
-				var res = (await client.ExecuteAsync(request)).Content;
+				var res = client.Execute(request).Content;
 				var photos = new Temperatures();
 				photos = JsonConvert.DeserializeObject<Temperatures>(res);
+				
 				if (photos.Response == null)
 				{
 					continue;
 				}
 
-				Console.WriteLine("PhotosCount " + photos.Response.Items.Count);
+				Console.WriteLine(photos.Response.Items.Count);
+
 
 				if (photos.Response.Items.Any())
 				{
@@ -462,12 +236,13 @@ namespace WebApplication2.Models
 						addList.Add(new WeaponList()
 						{
 							Text = photo.Text,
-							PhotoId = (long)photo.Id,
-							AlbumId = (long)photo.AlbumId,
-							GroupId = (long)photo.OwnerId,
+							PhotoId = photo.Id,
+							AlbumId = photo.AlbumId,
+							GroupId = photo.OwnerId,
 							Src = photo.Src,
-							StartTime = UnixTimeToDateTime(photo.Date)
-						});
+							StartTime = UnixTimeToDateTime(photo.Date),
+							FirstComment = photo.Comments.Count.ToString()
+						}) ;
 					}
 
 					var localRemoveList = weaponListDb.Where(w => w.GroupId == group.GroupId
@@ -477,24 +252,27 @@ namespace WebApplication2.Models
 					removeList.AddRange(localRemoveList);
 				}
 
-				Console.WriteLine("AddRemoveAndAdd");
-				Console.WriteLine("Auth2222");
 
 
 
 			}
-
+			Console.WriteLine("Finish");
 			using (var db = new DbNorthwind())
 			{
-				db.BulkCopy(addList);
+				if (addList.Any())
+				{
+					db.BulkCopy(addList);
+				}
 				foreach (var item in removeList)
 				{
-					await db.WeaponList
+					db.WeaponList
 						.Where(w => w.Id == item.Id)
-						.DeleteAsync();
+						.Delete();
 				}
 			}
-			Console.WriteLine("Ok!");
+			Console.WriteLine($"Удалено {removeList.Count}, добавлено {addList.Count}");
+
+
 		}
-    }
+	}
 }
