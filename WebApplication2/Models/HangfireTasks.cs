@@ -5,9 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Serialization.Json;
+using Telegram.Bot.Types.ReplyMarkups;
 using VkNet;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
@@ -140,7 +142,7 @@ namespace WebApplication2.Models
 			{
 				listParse = await db.WeaponList
 					.Where(w => w.Text == "" && int.Parse(w.FirstComment) > 0)
-					.Take(3)
+					.Take(4)
 					.ToListAsync();
 
 				foreach (var item in listParse)
@@ -162,10 +164,18 @@ namespace WebApplication2.Models
 					{
 						if(reslist.response.Count != 0)
 						{
-							item.Text = reslist.response.Items.FirstOrDefault()?.Text;
-							await db.WeaponList.Where(w => w.Id == item.Id)
-								.Set(s => s.Text, item.Text)
-								.UpdateAsync();
+							if(reslist.response.Items.First().Text == "")
+							{
+								await db.WeaponList.Where(f => f.Id == item.Id).DeleteAsync();
+							}
+							else
+							{
+								item.Text = reslist.response.Items.FirstOrDefault()?.Text;
+								await db.WeaponList.Where(w => w.Id == item.Id)
+									.Set(s => s.Text, item.Text)
+									.UpdateAsync();
+							}
+							
 						}
 						
 					}
@@ -273,6 +283,66 @@ namespace WebApplication2.Models
 			Console.WriteLine($"Удалено {removeList.Count}, добавлено {addList.Count}");
 
 
+		}
+
+		public static async Task Notify()
+		{
+			using (var db = new DbNorthwind())
+			{
+				var countMessages = 0;
+				var botClient = await Bot.GetBotClientAsync();
+
+				var addViewList = new List<UserViews>();
+				
+				var dbList = await db.WeaponList.Where(w => w.Text != "").ToListAsync();
+				var list = await db.LastQuery.Where(w => w.IsWatching == 1).ToListAsync();
+				foreach (var item in list)
+				{
+					var userView = await db.UserViews.Where(w => w.ChatId == int.Parse(item.ChatId)).ToListAsync();
+					var notifyList = dbList
+						.Where(w => userView.Select(s => s.PhotoId).ToList().Contains(w.PhotoId.ToString()) 
+						            && w.Text.ToLower().Contains(item.Query.ToLower()))
+						.Take(3)
+						.ToList();
+
+					foreach (var notif in notifyList.OrderBy(d => d.StartTime))
+					{
+						var text = notif.Text;
+						if(notif.Text.Length >= 450)
+						{
+							text = notif.Text.Substring(0, 450);
+						}
+						
+						text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {notif.StartTime}";
+						
+						_ = botClient.SendPhotoAsync(item.ChatId, photo: notif.Src, caption: text,
+							replyMarkup: new InlineKeyboardMarkup(
+								InlineKeyboardButton.WithUrl("Перейти",
+									$"https://vk.com/photo{notif.GroupId}_{notif.PhotoId}")
+							));
+
+						countMessages++;
+						
+					}
+					foreach (var itm in notifyList)
+					{
+						addViewList.Add(new UserViews()
+						{
+							ChatId = int.Parse(item.ChatId),
+							PhotoId = itm.PhotoId.ToString(),
+							GroupId = itm.GroupId.ToString()
+						});
+					}
+
+					if (countMessages >= 20)
+					{
+						break;
+					}
+					
+				}
+
+				db.UserViews.BulkCopy(addViewList);
+			}
 		}
 	}
 }

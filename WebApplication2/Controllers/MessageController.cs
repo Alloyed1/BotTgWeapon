@@ -42,7 +42,7 @@ namespace WebApplication2.Controllers
         {
             using(var db = new DbNorthwind())
             {
-                return await db.WeaponList.Where(w => w.Text == "").CountAsync();
+                return await db.WeaponList.Where(w => w.Text == "" && w.FirstComment != "0").CountAsync();
             }
         }
 
@@ -58,7 +58,7 @@ namespace WebApplication2.Controllers
             {
                 _memoryCache.Set(update.Message.Chat.Id, "1", new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(600)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(900)
                 });
             }
             else
@@ -79,7 +79,7 @@ namespace WebApplication2.Controllers
                 if (!command.Contains(message)) continue;
 
                 isCommand = true;
-                _ = Task.Run(() => command.Execute(message, botClient, _configuration));
+                await command.Execute(message, botClient, _configuration);
 
                 break;
             }

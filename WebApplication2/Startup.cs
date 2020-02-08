@@ -84,11 +84,16 @@ namespace WebApplication2
 
             //() => HangfireTasks.ParseComment(),
             //Cron.MinuteInterval(1));
+            
+            //RecurringJob.AddOrUpdate(
+
+            //() => HangfireTasks.Notify(),  
+            //Cron.MinuteInterval(7));
 
 
 
             //Bot Configurations
-            //Bot.GetBotClientAsync().GetAwaiter().GetResult();
+            Bot.GetBotClientAsync().GetAwaiter().GetResult();
         }
     }
 }
