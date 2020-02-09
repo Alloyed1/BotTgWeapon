@@ -131,7 +131,12 @@ namespace WebApplication2.Models
 			dtDateTime = dtDateTime.AddSeconds(unixtime).ToLocalTime();
 			return dtDateTime;
 		}
-
+		public static async Task ParseComment2()
+		{
+			var client = new RestClient("https://bottg.website");
+			var request = new RestRequest("parsecomment");
+			await client.ExecuteAsync(request);
+		}
 		public static async Task ParseComment()
 		{
 			var listParse = new List<WeaponList>();
@@ -186,6 +191,12 @@ namespace WebApplication2.Models
 				
 
 			}
+		}
+		public static async Task ParseAllAlbumsVkAsync2()
+		{
+			var client = new RestClient("https://bottg.website");
+			var request = new RestRequest("parseall");
+			await client.ExecuteAsync(request);
 		}
 
 		public static async Task ParseAllAlbumsVkAsync()
@@ -284,6 +295,12 @@ namespace WebApplication2.Models
 
 
 		}
+		public static async Task Notify2()
+		{
+			var client = new RestClient("https://bottg.website");
+			var request = new RestRequest("notify");
+			await client.ExecuteAsync(request);
+		}
 
 		public static async Task Notify()
 		{
@@ -300,8 +317,9 @@ namespace WebApplication2.Models
 				{
 					var userView = await db.UserViews.Where(w => w.ChatId == int.Parse(item.ChatId)).ToListAsync();
 					var notifyList = dbList
-						.Where(w => userView.Select(s => s.PhotoId).ToList().Contains(w.PhotoId.ToString()) 
-						            && w.Text.ToLower().Contains(item.Query.ToLower()))
+						.Where(w => !userView.Select(s => s.PhotoId).ToList().Contains(w.PhotoId.ToString()) 
+						            && w.Text.ToLower().Contains(item.Query.ToLower())
+						            && w.StartTime > item.StartWatchTime)
 						.Take(3)
 						.ToList();
 

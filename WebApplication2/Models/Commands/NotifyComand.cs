@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB;
 using Telegram.Bot;
@@ -33,6 +34,7 @@ namespace WebApplication2.Models.Commands
                 await db.LastQuery
                     .Where(w => w.ChatId == chatId.ToString())
                     .Set(s => s.IsWatching, 1)
+                    .Set(s => s.StartWatchTime, DateTime.Now)
                     .UpdateAsync();
 
                 var query = (await db.LastQuery

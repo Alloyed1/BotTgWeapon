@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using LinqToDB.Mapping;
 
 namespace WebApplication2.Models
@@ -16,5 +17,8 @@ namespace WebApplication2.Models
         public string ChatId { get; set; }
         [Column(Name = "IsWatching")]
         public int IsWatching { get; set; }
+        
+        [Column(Name = "StartWatchTime")]
+        public DateTime StartWatchTime { get; set; }
     }
 }

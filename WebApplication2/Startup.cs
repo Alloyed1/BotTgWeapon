@@ -15,7 +15,6 @@ using WebApplication2.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Hangfire.SqlServer;
 using Hangfire.PostgreSql;
 
 namespace WebApplication2
@@ -63,32 +62,22 @@ namespace WebApplication2
             app.UseHangfireDashboard();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-            
 
 
-            //RecurringJob.AddOrUpdate(
-            //    () => HangfireTasks.Test(),
-            //    Cron.MinuteInterval(2));
+            RecurringJob.AddOrUpdate(
 
-            //RecurringJob.AddOrUpdate(
-            //    () => HangfireTasks.ParsePhoto(),
-            //    Cron.MinuteInterval(8));
+             () => HangfireTasks.ParseAllAlbumsVkAsync(),
+            Cron.MinuteInterval(4));
 
+            RecurringJob.AddOrUpdate(
 
-            //RecurringJob.AddOrUpdate(
+             () => HangfireTasks.ParseComment(),
+             Cron.MinuteInterval(1));
 
-           // () => HangfireTasks.ParseAllAlbumsVkAsync(),
-            //Cron.MinuteInterval(5));
+            RecurringJob.AddOrUpdate(
 
-            //RecurringJob.AddOrUpdate(
-
-            //() => HangfireTasks.ParseComment(),
-            //Cron.MinuteInterval(1));
-            
-            //RecurringJob.AddOrUpdate(
-
-            //() => HangfireTasks.Notify(),  
-            //Cron.MinuteInterval(7));
+            () => HangfireTasks.Notify(),
+            Cron.MinuteInterval(2));
 
 
 

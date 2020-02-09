@@ -93,5 +93,25 @@ namespace WebApplication2.Controllers
 
         }
 
+        [HttpGet]
+        [Route("/notify")]
+        public async Task Notify()
+        {
+            _ = Task.Run(() => HangfireTasks.Notify());
+        }
+
+        [HttpGet]
+        [Route("/parseall")]
+        public async Task ParseAll()
+        {
+            _ = Task.Run(() => HangfireTasks.ParseAllAlbumsVkAsync());
+        }
+        [HttpGet]
+        [Route("/parsecomment")]
+        public async Task ParseComment()
+        {
+            _ = Task.Run(() => HangfireTasks.ParseComment()); 
+        }
+
     }
 }
