@@ -42,8 +42,7 @@ namespace WebApplication2.Models.Commands
 
 
                 var gggList = await db.WeaponList
-                    .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()) ||
-                                w.FirstComment.ToLower().Contains(message.Text.ToLower()))
+                    .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()))
                     .ToListAsync();
                 
                 var ggg = gggList.GroupBy(f => f.Text)

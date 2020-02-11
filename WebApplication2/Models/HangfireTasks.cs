@@ -38,7 +38,7 @@ namespace WebApplication2.Models
 		    new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
 		    new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
 		    new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
-		    //new GroupAlbum() {GroupId = -13212026, AlbumId = 270419956},
+		    new GroupAlbum() {GroupId = -13212026, AlbumId = 271731709},
 		    new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
 		    new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
 	    };
