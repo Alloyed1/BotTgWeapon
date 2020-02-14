@@ -131,12 +131,6 @@ namespace WebApplication2.Models
 			dtDateTime = dtDateTime.AddSeconds(unixtime).ToLocalTime();
 			return dtDateTime;
 		}
-		public static async Task ParseComment2()
-		{
-			var client = new RestClient("https://bottg.website");
-			var request = new RestRequest("parsecomment");
-			await client.ExecuteAsync(request);
-		}
 		public static async Task ParseComment()
 		{
 			var listParse = new List<WeaponList>();
@@ -192,12 +186,7 @@ namespace WebApplication2.Models
 
 			}
 		}
-		public static async Task ParseAllAlbumsVkAsync2()
-		{
-			var client = new RestClient("https://bottg.website");
-			var request = new RestRequest("parseall");
-			await client.ExecuteAsync(request);
-		}
+
 
 		public static async Task ParseAllAlbumsVkAsync()
 		{
@@ -294,12 +283,6 @@ namespace WebApplication2.Models
 			Console.WriteLine($"Удалено {removeList.Count}, добавлено {addList.Count}");
 
 
-		}
-		public static async Task Notify2()
-		{
-			var client = new RestClient("https://bottg.website");
-			var request = new RestRequest("notify");
-			await client.ExecuteAsync(request);
 		}
 
 		public static async Task Notify()

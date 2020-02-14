@@ -64,10 +64,10 @@ namespace WebApplication2
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
 
-            RecurringJob.AddOrUpdate(
+            //RecurringJob.AddOrUpdate(
 
-             () => HangfireTasks.ParseAllAlbumsVkAsync(),
-            Cron.MinuteInterval(4));
+            // () => HangfireTasks.ParseAllAlbumsVkAsync(),
+            //Cron.MinuteInterval(4));
 
             RecurringJob.AddOrUpdate(
 

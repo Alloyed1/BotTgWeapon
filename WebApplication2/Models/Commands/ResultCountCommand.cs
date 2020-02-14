@@ -39,13 +39,29 @@ namespace WebApplication2.Models.Commands
                     }
                 }
 
-
-
-                var gggList = await db.WeaponList
-                    .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()))
-                    .ToListAsync();
+                var queryListAnd = message.Text.ToLower().Split(" и ").ToList();
+                var queryListOr = message.Text.ToLower().Split(" и ").ToList();
                 
-                var ggg = gggList.GroupBy(f => f.Text)
+                var reslist = new List<WeaponList>();
+                
+                if (queryListAnd.Count == queryListOr.Count)
+                {
+                    reslist = await GetQuery(false, false, new List<string>());
+                }
+                else if (queryListAnd.Count > queryListOr.Count)
+                {
+                    reslist = await GetQuery(true, false, queryListAnd);
+                }
+                else
+                {
+                    reslist = await GetQuery(false, true, queryListOr);
+                }
+
+
+
+                
+                
+                var ggg = reslist.GroupBy(f => f.Text.ToLower())
                     .Select(g => g.First())
                     .Count();
                     
@@ -72,26 +88,22 @@ namespace WebApplication2.Models.Commands
 
 
                 
-                await AddQuery(chatId.ToString(), message.Text);
+                await AddQuery(chatId.ToString(), message.Text, reslist);
             }
             
-            async Task AddQuery(string chatId, string query)
+            async Task AddQuery(string chatId, string query, List<WeaponList> reslist)
             {
                 using(var db = new DbNorthwind())
                 {
                     await db.ViewsTurns
                         .Where(w => w.ChatId == int.Parse(chatId))
                         .DeleteAsync();
-                    
-                    var list = await db.WeaponList
-                        .HasUniqueKey(f => f.Text)
-                        .Where(w => w.Text.ToLower().Contains(query) ||
-                                    w.FirstComment.ToLower().Contains(query))
-					
+
+                    var list = reslist
                         .OrderByDescending(w => w.StartTime)
                         .Take(100)
-                        .ToListAsync();
-
+                        .ToList();
+                    
                     list = list.GroupBy(f => f.Text)
                         .Select(g => g.First()).Take(50).ToList();
 
@@ -122,6 +134,82 @@ namespace WebApplication2.Models.Commands
                     }
                 }
             }
+
+            async Task<List<WeaponList>> GetQuery(bool and, bool or, List<string> list)
+            {
+                await using (var db = new DbNorthwind())
+                {
+                    if (and)
+                    {
+                        if (list.Count == 1)
+                        {
+                            return await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
+                                            && w.Text.ToLower().Contains(list[1].ToLower())).ToListAsync();
+                        }
+                        if (list.Count == 2)
+                        {
+                            return await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
+                                            && w.Text.ToLower().Contains(list[1].ToLower())
+                                            && w.Text.ToLower().Contains(list[2].ToLower())).ToListAsync();
+                        }
+                        if (list.Count == 3)
+                        {
+                            return await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
+                                            && w.Text.ToLower().Contains(list[1].ToLower())
+                                            && w.Text.ToLower().Contains(list[2].ToLower())
+                                            && w.Text.ToLower().Contains(list[3].ToLower())).ToListAsync();
+                        }
+                        else
+                        {
+                            return  await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()))
+                                .ToListAsync();
+                        }
+
+                    }
+                    else if (or)
+                    {
+                        if (list.Count == 1)
+                        {
+                            return await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
+                                            || w.Text.ToLower().Contains(list[1].ToLower())).ToListAsync();
+                        }
+                        if (list.Count == 2)
+                        {
+                            return await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
+                                            || w.Text.ToLower().Contains(list[1].ToLower())
+                                            || w.Text.ToLower().Contains(list[2].ToLower())).ToListAsync();
+                        }
+                        if (list.Count == 3)
+                        {
+                            return await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
+                                            || w.Text.ToLower().Contains(list[1].ToLower())
+                                            || w.Text.ToLower().Contains(list[2].ToLower())
+                                            || w.Text.ToLower().Contains(list[3].ToLower())).ToListAsync();
+                        }
+                        else
+                        {
+                            return  await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()))
+                                .ToListAsync();
+                        }
+                    }
+                    else
+                    {
+                        return  await db.WeaponList
+                            .Where(w => w.Text.ToLower().Contains(message.Text.ToLower()))
+                            .ToListAsync();
+                    }
+                }
+            }
+
+            
         }
     }
 }
