@@ -29,12 +29,10 @@ namespace WebApplication2.Controllers
     {
         private IMemoryCache _memoryCache;
         private IConfiguration _configuration;
-        private int count = 0;
         public MessageController(IMemoryCache memoryCache, IConfiguration configuration)
         {
             _memoryCache = memoryCache;
             _configuration = configuration;
-            count = _configuration.GetSection("Settings").Get<Settings>().CountMessage;
         }
         [HttpGet]
         [Route("/get")]

@@ -33,7 +33,9 @@ namespace WebApplication2.Models
                 new StopCommand(),
                 new StopNotifyCommand(),
                 new ReportCommand(),
-                new ReportAdminCommand()
+                new ReportAdminCommand(),
+                new GetIdCommand(),
+                new StatCommand()
             };
             
 

@@ -32,11 +32,11 @@ namespace WebApplication2
         public void ConfigureServices(IServiceCollection services)
         {
             
-            services.AddDbContext<ApplicationContext>(options =>
-                options.UseNpgsql("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
+            //services.AddDbContext<ApplicationContext>(options =>
+            //    options.UseNpgsql("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
 
-           services.AddHangfire(config =>
-                config.UsePostgreSqlStorage("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
+           //services.AddHangfire(config =>
+           //     config.UsePostgreSqlStorage("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
 
 
             services.AddMemoryCache();
@@ -53,13 +53,13 @@ namespace WebApplication2
             }
 
             app.UseRouting(); 
-            var documentOptions = new BackgroundJobServerOptions
-            {
-                WorkerCount = 15,
-            };
+            //var documentOptions = new BackgroundJobServerOptions
+            //{
+            //    WorkerCount = 15,
+            //};
 
-            app.UseHangfireServer(documentOptions);
-            app.UseHangfireDashboard();
+            //app.UseHangfireServer(documentOptions);
+            //app.UseHangfireDashboard();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
@@ -69,15 +69,15 @@ namespace WebApplication2
             // () => HangfireTasks.ParseAllAlbumsVkAsync(),
             //Cron.MinuteInterval(4));
 
-            RecurringJob.AddOrUpdate(
+            //RecurringJob.AddOrUpdate(
 
-             () => HangfireTasks.ParseComment(),
-             Cron.MinuteInterval(1));
+            // () => HangfireTasks.ParseComment(),
+            // Cron.MinuteInterval(1));
 
-            RecurringJob.AddOrUpdate(
+            //RecurringJob.AddOrUpdate(
 
-            () => HangfireTasks.Notify(),
-            Cron.MinuteInterval(2));
+            //() => HangfireTasks.Notify(),
+            //Cron.MinuteInterval(2));
 
 
 

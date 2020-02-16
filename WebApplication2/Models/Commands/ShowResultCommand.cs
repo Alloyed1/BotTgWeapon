@@ -175,7 +175,6 @@ namespace WebApplication2.Models.Commands
 							{
 								new[] { $"Показать результат ещё {countShow} (Осталось {count})"},
 								new []{"Помощь", "Вкл.авто уведомление"},
-								new[]{"Остановить"}
 							};
 							ReplyKeyboard.ResizeKeyboard = true;
 

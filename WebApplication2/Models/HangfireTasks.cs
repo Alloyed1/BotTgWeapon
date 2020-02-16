@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Serialization.Json;
@@ -20,6 +21,12 @@ namespace WebApplication2.Models
 {
     public  class HangfireTasks
     {
+	    private static IConfiguration _configuration;
+	    public HangfireTasks(IConfiguration configuration)
+	    {
+		    _configuration = configuration;
+	    }
+	    
 	    static List<string> userList = new List<string>
 	    {
 		    "2329557afb5eaa5f8280b747b1ca43320eee63e7098c0ed8fcf802d94ea3692ca8bfc0416547cb7b7e15c",
@@ -203,7 +210,24 @@ namespace WebApplication2.Models
 			}
 			Console.WriteLine("WeaponGet");
 			var client = new RestClient("https://api.vk.com/method");
-			foreach (var group in groupList)
+
+			var settings = _configuration.GetSection("Settings").Get<Settings>();
+			
+			var albumsList = new List<GroupAlbum>();
+			
+			settings.Albums.ForEach(f =>
+			{
+				f = f.Replace("https://vk.com/album", "");
+				albumsList.Add(new GroupAlbum()
+				{
+					AlbumId = long.Parse(f.Split('_')[0]),
+					GroupId = long.Parse(f.Split('_')[1])
+				});
+			});
+			
+			
+			
+			foreach (var group in albumsList)
 			{
 				var request = new RestRequest("photos.get");
 
@@ -222,6 +246,9 @@ namespace WebApplication2.Models
 				
 				if (photos.Response == null)
 				{
+					var bot = await Bot.GetBotClientAsync();
+					await bot.SendTextMessageAsync(settings.AdminChatId,
+						$"Не удалось спарсить альбом: https://vk.com/album{group.GroupId}_{group.AlbumId}");
 					continue;
 				}
 

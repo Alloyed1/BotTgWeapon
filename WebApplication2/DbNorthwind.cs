@@ -13,5 +13,6 @@ namespace WebApplication2
         public ITable<LastQuery> LastQuery => GetTable<LastQuery>();
         public ITable<UserViews> UserViews => GetTable<UserViews>();
         public ITable<ViewsTurns> ViewsTurns => GetTable<ViewsTurns>();
+        public ITable<Querys> Querys => GetTable<Querys>();
     }
 }
