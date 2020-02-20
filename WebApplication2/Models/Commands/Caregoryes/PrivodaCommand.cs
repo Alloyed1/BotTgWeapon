@@ -1,16 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using LinqToDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using WebApplication2.Controllers;
 
-namespace WebApplication2.Models.Commands
+namespace WebApplication2.Models.Commands.Caregoryes
 {
-    public class HelpCommand : Command
+    public class PrivodaCommand : Command
     {
-        public override string Name => @"Помощь";
+        public override string Name => @"Привода";
+
         public override bool Contains(Message message)
         {
             if (message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
@@ -20,8 +24,13 @@ namespace WebApplication2.Models.Commands
         }
         public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
-            var chatId = message.Chat.Id;
-            await botClient.SendTextMessageAsync(chatId, "Бот для поиска по страйкбольным барахолкам."+ Environment.NewLine +" В случае замечаний/предложений для связи с администрацией напишите: /report текст сообщения", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            using (var db = new DbNorthwind())
+            {
+                await db.Chats.Where(w => w.ChatId == message.Chat.Id.ToString())
+                    .Set(s => s.CategorySearch, Name)
+                    .UpdateAsync();
+                await botClient.SendTextMessageAsync(message.Chat.Id, $"Категория '{Name}' включена");
+            }
         }
     }
 }

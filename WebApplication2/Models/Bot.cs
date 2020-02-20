@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MihaZupan;
 using Telegram.Bot;
 using WebApplication2.Models.Commands;
+using WebApplication2.Models.Commands.Caregoryes;
 
 namespace WebApplication2.Models
 {
@@ -35,7 +36,13 @@ namespace WebApplication2.Models
                 new ReportCommand(),
                 new ReportAdminCommand(),
                 new GetIdCommand(),
-                new StatCommand()
+                new StatCommand(),
+                new AllUsersNotifyCommand(),
+                new CategoriesShowCommand(),
+                new OtherCommand(),
+                new PrivodaCommand(),
+                new SnarygAndArmorCommand(),
+                new AllCategoryCommand()
             };
             
 

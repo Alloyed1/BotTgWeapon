@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using WebApplication2.Controllers;
+using File = System.IO.File;
 
 namespace WebApplication2.Models.Commands
 {
@@ -44,20 +49,25 @@ namespace WebApplication2.Models.Commands
 
                 var queryListAnd = message.Text.ToLower().Split(" и ").ToList();
                 var queryListOr = message.Text.ToLower().Split(" или ").ToList();
+                Console.WriteLine(chatId);
+                var categoryName = "";
+
+                categoryName = (await db.Chats.FirstOrDefaultAsync(f => f.ChatId == chatId.ToString())).CategorySearch;
                 
+
                 var reslist = new List<WeaponList>();
                 
                 if (queryListAnd.Count == queryListOr.Count)
                 {
-                    reslist = await GetQuery(false, false, new List<string>(), message.Text);
+                    reslist = await GetQuery(false, false, new List<string>(), message.Text, categoryName);
                 }
                 else if (queryListAnd.Count > queryListOr.Count)
                 {
-                    reslist = await GetQuery(true, false, queryListAnd, message.Text);
+                    reslist = await GetQuery(true, false, queryListAnd, message.Text, categoryName);
                 }
                 else
                 {
-                    reslist = await GetQuery(false, true, queryListOr, message.Text);
+                    reslist = await GetQuery(false, true, queryListOr, message.Text, categoryName);
                 }
 
 
@@ -73,6 +83,7 @@ namespace WebApplication2.Models.Commands
                 ReplyKeyboardMarkup ReplyKeyboard = new[]
                 {
                     new[] { "Показать результат", "Помощь"},
+                    new[]{"Поиск по категориям"}
                 };
                 ReplyKeyboard.ResizeKeyboard = true;
 
@@ -155,37 +166,39 @@ namespace WebApplication2.Models.Commands
                 }
             }
 
-        async Task<List<WeaponList>> GetQuery(bool and, bool or, List<string> list, string message)
+        async Task<List<WeaponList>> GetQuery(bool and, bool or, List<string> list, string message, string category = null)
             {
+                
                 using (var db = new DbNorthwind())
                 {
+                    var returnList = new List<WeaponList>();
                     if (and)
                     {
                         if (list.Count == 2)
                         {
-                            return await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
-                                            && w.Text.ToLower().Contains(list[1].ToLower())).ToListAsync();
+                            returnList = await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            && w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
                         }
-                        if (list.Count == 3)
+                        else if (list.Count == 3)
                         {
-                            return await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
-                                            && w.Text.ToLower().Contains(list[1].ToLower())
-                                            && w.Text.ToLower().Contains(list[2].ToLower())).ToListAsync();
+                            returnList = await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            && w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            && w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
                         }
-                        if (list.Count == 4)
+                        else if (list.Count == 4)
                         {
-                            return await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
-                                            && w.Text.ToLower().Contains(list[1].ToLower())
-                                            && w.Text.ToLower().Contains(list[2].ToLower())
-                                            && w.Text.ToLower().Contains(list[3].ToLower())).ToListAsync();
+                            returnList = await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            && w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            && w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            && w.Text.ToLower().Contains(list[3].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
                         }
                         else
                         {
-                            return  await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(message.ToLower()))
+                            returnList =  await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(message.ToLower(), StringComparison.CurrentCultureIgnoreCase))
                                 .ToListAsync();
                         }
 
@@ -194,38 +207,48 @@ namespace WebApplication2.Models.Commands
                     {
                         if (list.Count == 2)
                         {
-                            return await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
-                                            || w.Text.ToLower().Contains(list[1].ToLower())).ToListAsync();
+                            returnList = await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            || w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
                         }
-                        if (list.Count == 3)
+                        else if (list.Count == 3)
                         {
-                            return await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
-                                            || w.Text.ToLower().Contains(list[1].ToLower())
-                                            || w.Text.ToLower().Contains(list[2].ToLower())).ToListAsync();
+                            returnList = await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            || w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            || w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
                         }
-                        if (list.Count == 4)
+                        else if (list.Count == 4)
                         {
-                            return await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower())
-                                            || w.Text.ToLower().Contains(list[1].ToLower())
-                                            || w.Text.ToLower().Contains(list[2].ToLower())
-                                            || w.Text.ToLower().Contains(list[3].ToLower())).ToListAsync();
+                            returnList = await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            || w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            || w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)
+                                            || w.Text.ToLower().Contains(list[3].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
                         }
                         else
                         {
-                            return  await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(message.ToLower()))
+                            returnList =  await db.WeaponList
+                                .Where(w => w.Text.ToLower().Contains(message.ToLower(), StringComparison.CurrentCultureIgnoreCase))
                                 .ToListAsync();
                         }
                     }
                     else
                     {
-                        return  await db.WeaponList
+                        returnList =  await db.WeaponList
                             .Where(w => w.Text.ToLower().Contains(message.ToLower()))
                             .ToListAsync();
                     }
+                    
+                        
+                    if (category == "Привода")
+                        return returnList.Where(w => w.Category == 1).ToList();
+                    if (category == "Снаряжение и защита")
+                        return returnList.Where(w => w.Category == 2).ToList();
+                    if (category == "Аксессуары и запчасти")
+                        return returnList.Where(w => w.Category == 3).ToList();
+                    
+                    return returnList;
                 }
             }
     }

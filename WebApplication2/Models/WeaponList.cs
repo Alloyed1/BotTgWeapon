@@ -23,6 +23,10 @@ namespace WebApplication2.Models
         public string FirstComment { get; set; }
         [Column(Name = "PhotoId")]
         public long PhotoId { get; set; }
+        [Column(Name = "Category")]
+        public int Category { get; set; }
+        [Column(Name = "UserId")]
+        public int UserId { get; set; }
 
         [Column(Name = "StartTime")]
         public DateTime StartTime { get; set; }

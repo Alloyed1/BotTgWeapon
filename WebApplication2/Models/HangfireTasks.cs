@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ using VkNet.Model.RequestParams;
 
 namespace WebApplication2.Models
 {
+
     public  class HangfireTasks
     {
 	    private static IConfiguration _configuration;
@@ -203,6 +205,8 @@ namespace WebApplication2.Models
 			var addList = new List<WeaponList>();
 			var removeList = new List<WeaponList>();
 			var weaponListDb = new List<WeaponList>();
+			
+			
 
 			using (var db = new DbNorthwind())
 			{
@@ -211,20 +215,21 @@ namespace WebApplication2.Models
 			Console.WriteLine("WeaponGet");
 			var client = new RestClient("https://api.vk.com/method");
 
-			var settings = _configuration.GetSection("Settings").Get<Settings>();
+			var settings = Startup.StaticConfig.GetSection("Settings").Get<Settings>();
 			
 			var albumsList = new List<GroupAlbum>();
 			
 			settings.Albums.ForEach(f =>
 			{
 				f = f.Replace("https://vk.com/album", "");
+				var mass = f.Split('_').ToList();
 				albumsList.Add(new GroupAlbum()
 				{
-					AlbumId = long.Parse(f.Split('_')[0]),
-					GroupId = long.Parse(f.Split('_')[1])
+					AlbumId = long.Parse(mass[1]),
+					GroupId = long.Parse(mass[0]),
+					Category = int.Parse(mass[2])
 				});
 			});
-			
 			
 			
 			foreach (var group in albumsList)
@@ -246,10 +251,30 @@ namespace WebApplication2.Models
 				
 				if (photos.Response == null)
 				{
-					var bot = await Bot.GetBotClientAsync();
-					await bot.SendTextMessageAsync(settings.AdminChatId,
-						$"Не удалось спарсить альбом: https://vk.com/album{group.GroupId}_{group.AlbumId}");
+					try
+					{
+						string path = @"/dataNotify.txt";
+						var date = new DateTime();
+						if (!File.Exists(path))
+						{
+							File.WriteAllText(path, DateTime.Now.ToShortDateString());
+						}
+						else
+						{
+							date = Convert.ToDateTime(File.ReadAllText(path));
+						}
+
+						if (date != new DateTime() && DateTime.Now > date.AddMinutes(2))
+						{
+							var bot = await Bot.GetBotClientAsync();
+							await bot.SendTextMessageAsync(settings.AdminChatId,
+								$"Не удалось спарсить альбом: https://vk.com/album{group.GroupId}_{group.AlbumId}");
+						}
+					}
+					catch { }
+					
 					continue;
+					
 				}
 
 				Console.WriteLine(photos.Response.Items.Count);
@@ -278,7 +303,9 @@ namespace WebApplication2.Models
 							GroupId = photo.OwnerId,
 							Src = photo.Src,
 							StartTime = UnixTimeToDateTime(photo.Date),
-							FirstComment = photo.Comments.Count.ToString()
+							FirstComment = photo.Comments.Count.ToString(),
+							Category = group.Category,
+							UserId = (int)photo.UserId
 						}) ;
 					}
 

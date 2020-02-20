@@ -18,6 +18,8 @@ namespace WebApplication2.Models
         public string UserName { get; set; }
         [Column(Name = "ChatId")]
         public string ChatId { get; set; }
+        [Column(Name = "CategorySearch")]
+        public string CategorySearch { get; set; }
 
     }
 }

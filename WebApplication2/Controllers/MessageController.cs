@@ -29,7 +29,9 @@ namespace WebApplication2.Controllers
     {
         private IMemoryCache _memoryCache;
         private IConfiguration _configuration;
-        public MessageController(IMemoryCache memoryCache, IConfiguration configuration)
+        public MessageController(IMemoryCache memoryCache,
+            IConfiguration configuration
+            )
         {
             _memoryCache = memoryCache;
             _configuration = configuration;
@@ -38,6 +40,7 @@ namespace WebApplication2.Controllers
         [Route("/get")]
         public async Task<int> Get()
         {
+
             using(var db = new DbNorthwind())
             {
                 return await db.WeaponList.Where(w => w.Text == "" && w.FirstComment != "0").CountAsync();
@@ -56,7 +59,7 @@ namespace WebApplication2.Controllers
             {
                 _memoryCache.Set(update.Message.Chat.Id, "1", new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(900)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(500)
                 });
             }
             else
@@ -89,26 +92,6 @@ namespace WebApplication2.Controllers
 
             return Ok();
 
-        }
-
-        [HttpGet]
-        [Route("/notify")]
-        public async Task Notify()
-        {
-            _ = Task.Run(() => HangfireTasks.Notify());
-        }
-
-        [HttpGet]
-        [Route("/parseall")]
-        public async Task ParseAll()
-        {
-            _ = Task.Run(() => HangfireTasks.ParseAllAlbumsVkAsync());
-        }
-        [HttpGet]
-        [Route("/parsecomment")]
-        public async Task ParseComment()
-        {
-            _ = Task.Run(() => HangfireTasks.ParseComment()); 
         }
 
     }

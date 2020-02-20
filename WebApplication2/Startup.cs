@@ -24,19 +24,22 @@ namespace WebApplication2
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            StaticConfig = configuration;
         }
+
+        public static IConfiguration StaticConfig { get; private set; }
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
+
             //services.AddDbContext<ApplicationContext>(options =>
             //    options.UseNpgsql("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
 
-           //services.AddHangfire(config =>
-           //     config.UsePostgreSqlStorage("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
+            services.AddHangfire(config =>
+                 config.UsePostgreSqlStorage("Host=45.144.64.224;Port=5432;Database=database;Username=postgres;Password=cw42puQAZ"));
 
 
             services.AddMemoryCache();
@@ -52,32 +55,32 @@ namespace WebApplication2
                 app.UseDeveloperExceptionPage(); 
             }
 
-            app.UseRouting(); 
-            //var documentOptions = new BackgroundJobServerOptions
-            //{
-            //    WorkerCount = 15,
-            //};
+            app.UseRouting();
+            var documentOptions = new BackgroundJobServerOptions
+            {
+                WorkerCount = 30,
+            };
 
-            //app.UseHangfireServer(documentOptions);
-            //app.UseHangfireDashboard();
+            app.UseHangfireServer(documentOptions);
+            app.UseHangfireDashboard();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
 
-            //RecurringJob.AddOrUpdate(
+            RecurringJob.AddOrUpdate(
 
-            // () => HangfireTasks.ParseAllAlbumsVkAsync(),
-            //Cron.MinuteInterval(4));
+             () => HangfireTasks.ParseAllAlbumsVkAsync(),
+            Cron.MinuteInterval(4));
 
-            //RecurringJob.AddOrUpdate(
+            RecurringJob.AddOrUpdate(
 
-            // () => HangfireTasks.ParseComment(),
-            // Cron.MinuteInterval(1));
+            () => HangfireTasks.ParseComment(),
+                Cron.MinuteInterval(1));
 
-            //RecurringJob.AddOrUpdate(
+            RecurringJob.AddOrUpdate(
 
-            //() => HangfireTasks.Notify(),
-            //Cron.MinuteInterval(2));
+            () => HangfireTasks.Notify(),
+            Cron.MinuteInterval(2));
 
 
 

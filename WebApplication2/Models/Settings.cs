@@ -11,5 +11,6 @@ namespace WebApplication2.Models
 		public int CountMessageVip { get; set; }
 		public int AdminChatId { get; set; }
 		public List<string> Albums { get; set; }
+		public List<(string, string)> Categories = new List<(string, string)>();
 	}
 }

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using LinqToDB;
+using Microsoft.Extensions.Logging;
+using WebApplication2.Controllers;
 
 
 namespace WebApplication2.Models.Commands

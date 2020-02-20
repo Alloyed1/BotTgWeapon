@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
@@ -48,8 +50,8 @@ namespace WebApplication2.Models.Commands
 
 				text += $"Количество запросов: {countInDay}/{countInWeek}/{countInMoth}";
 				text += Environment.NewLine + Environment.NewLine;
-				
-				text += $"Уникальных пользователей: {uniqueUsersInDay}/{uniqueUsersInWeek}/{uniqueUsersInMoth}"ж
+
+				text += $"Уникальных пользователей: {uniqueUsersInDay}/{uniqueUsersInWeek}/{uniqueUsersInMoth}";
 				text += Environment.NewLine + Environment.NewLine;
 				
 				text += $"Подписаны на уведомление: {countIsWatching}";
@@ -58,73 +60,6 @@ namespace WebApplication2.Models.Commands
 
 			}
 		}
-
-		Task GetQueryInDay(ref int count)
-		{
-			using (var db = new DbNorthwind())
-			{
-				count = db.Querys.Where(w => w.Date.Day == DateTime.Now.Day).ToList().Count;
-				return Task.CompletedTask;
-			}
-
-			
-		}
-		Task GetQueryInWeek(ref int count)
-		{
-			using (var db = new DbNorthwind())
-			{
-				count = db.Querys.Where(w => w.Date > DateTime.Now.AddDays(-7)).ToList().Count;
-				return Task.CompletedTask;
-			}
-			
-		}
-		Task GetQueryInMoth(ref int count)
-		{
-			using (var db = new DbNorthwind())
-			{
-				count = db.Querys.Where(w => w.Date > DateTime.Now.AddDays(-30)).ToList().Count;
-				return Task.CompletedTask;
-			}
-		}
-
-		Task GetUsersInDay(ref int count)
-		{
-			using (var db = new DbNorthwind())
-			{
-				count = db.Querys
-					.Where(w => w.Date.Day == DateTime.Now.Day)
-					.Select(s => s.ChatId)
-					.Distinct()
-					.ToList().Count;
-				
-				return Task.CompletedTask;
-			}
-		}
-		Task GetUsersInWeek(ref int count)
-		{
-			using (var db = new DbNorthwind())
-			{
-				count = db.Querys
-					.Where(w => w.Date > DateTime.Now.AddDays(-7))
-					.Select(s => s.ChatId)
-					.Distinct()
-					.ToList().Count;
-				
-				return Task.CompletedTask;
-			}
-		}
-		Task GetUsersInMoth(ref int count)
-		{
-			using (var db = new DbNorthwind())
-			{
-				count = db.Querys
-					.Where(w => w.Date > DateTime.Now.AddDays(-30))
-					.Select(s => s.ChatId)
-					.Distinct()
-					.ToList().Count;
-				
-				return Task.CompletedTask;
-			}
-		}
+		
 	}
 }

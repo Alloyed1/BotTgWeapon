@@ -1,8 +1,10 @@
 ﻿using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {

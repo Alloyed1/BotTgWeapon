@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
@@ -132,7 +134,8 @@ namespace WebApplication2.Models.Commands
 				ReplyKeyboardMarkup keyboard4 = new[]
 				{
 					
-					new []{"Помощь", "Остановить"}
+					new []{"Помощь", "Остановить"},
+					new[]{"Поиск по категориям"}
 				};
 				keyboard4.ResizeKeyboard = true;
 
@@ -190,7 +193,7 @@ namespace WebApplication2.Models.Commands
 								{
 										new []{"Вкл.авто уведомление"},
 										new[]{"Помощь"}
-									};
+								};
 								ReplyKeyboard.ResizeKeyboard = true;
 								await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны, сделайте повторный запрос или включите уведомления по этому.",
 									replyMarkup: ReplyKeyboard);

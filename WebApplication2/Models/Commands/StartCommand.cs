@@ -2,7 +2,9 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using LinqToDB;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types.ReplyMarkups;
+using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
@@ -29,7 +31,7 @@ namespace WebApplication2.Models.Commands
             }
             ReplyKeyboardMarkup ReplyKeyboard = new[]
             {
-                new []{"Помощь"}
+                new []{"Помощь", "Поиск по категориям"}
             };
             ReplyKeyboard.ResizeKeyboard = true;
             await botClient.SendTextMessageAsync(chatId, "Приветствую! Введите слово для поиска или нажмите \"Помощь\"", replyMarkup: ReplyKeyboard);
