@@ -7,7 +7,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public abstract class Command
+    public abstract class CommandMessage
     {
         public  abstract string Name { get; }
         public abstract Task Execute(Message message, TelegramBotClient client, Microsoft.Extensions.Configuration.IConfiguration configuration);

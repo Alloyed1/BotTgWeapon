@@ -16,7 +16,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-	public class ShowResultCommand : Command
+	public class ShowResultCommand : CommandMessage
 	{
 		public override string Name => "Показать результат";
 		public Settings settings { get; set; }
@@ -90,13 +90,46 @@ namespace WebApplication2.Models.Commands
 			}
 		}
 
-		async Task SendPhoto(string text, string url,string scr , int chatId, TelegramBotClient botClient)
+		async Task SendPhoto(string text, string url,string scr , int vkId , int chatId, TelegramBotClient botClient, Kidals kidals = null)
 		{
-			await botClient.SendPhotoAsync(chatId, photo: scr, caption: text,
-								replyMarkup: new InlineKeyboardMarkup(
-									InlineKeyboardButton.WithUrl("Перейти",
-										url)
-								));
+			if (kidals != null)
+			{
+				var list = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
+				{
+					new InlineKeyboardButton()
+					{
+						Text = "Перейти",
+						Url = url,
+					},
+					new InlineKeyboardButton()
+					{
+						Text = "❗Мошенник.Инфо.",
+						Url = $"https://vk.com/topic-{kidals.GroupId}_{kidals.TopicId}?post={kidals.PostId}",
+					},
+					InlineKeyboardButton.WithCallbackData("Проверить", "Проверить" + vkId)
+
+				});
+				await botClient.SendPhotoAsync(chatId, photo: scr, caption: text,
+					replyMarkup: list);
+			}
+			else
+			{
+				var list = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
+				{
+					new InlineKeyboardButton()
+					{
+						Text = "Перейти",
+						Url = url,
+					},
+					InlineKeyboardButton.WithCallbackData("Проверить", "Проверить" + vkId)
+					
+				});
+				
+				await botClient.SendPhotoAsync(chatId, photo: scr, caption: text,
+					replyMarkup: list
+					);
+			}
+			
 		}
 
 		public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
@@ -134,7 +167,7 @@ namespace WebApplication2.Models.Commands
 				ReplyKeyboardMarkup keyboard4 = new[]
 				{
 					
-					new []{"Помощь", "Остановить"},
+					new []{"Помощь"},
 					new[]{"Поиск по категориям"}
 				};
 				keyboard4.ResizeKeyboard = true;
@@ -149,7 +182,7 @@ namespace WebApplication2.Models.Commands
 					viewList.Add(new UserViews
 						{ChatId = (int) chatId, GroupId = lis.GroupId.ToString(), PhotoId = lis.PhotoId.ToString()});
 				}
-
+				
 				using (var db = new DbNorthwind())
 				{
 					db.BulkCopy(viewList);
@@ -157,56 +190,49 @@ namespace WebApplication2.Models.Commands
 				 
 				foreach (var lis in list)
 				{
-					if (isStop)
+
+					if (lis.Text.Length > 450)
 					{
-						break;
+						lis.Text = lis.Text.Substring(0, 450);
 					}
-					
-						if (lis.Text.Length > 450)
-						{
-							lis.Text = lis.Text.Substring(0, 450);
-						}
 
-						lis.Text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {lis.StartTime}";
+					lis.Text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {lis.StartTime:dd/MM/yyyy}";
 
-					 await SendPhoto(lis.Text, $"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}", lis.Src, (int)chatId, botClient);
+					await using var db = new DbNorthwind();
+					var kidal = await db.Kidals.FirstOrDefaultAsync(f => f.VkId == lis.UserId);
+
+					await SendPhoto(lis.Text, $"https://vk.com/photo{lis.GroupId}_{lis.PhotoId}", lis.Src,lis.UserId, (int)chatId, botClient, kidal);
 
 
 					if (list.Last() == lis)
+					{
+						ReplyKeyboardMarkup ReplyKeyboard = new[]
 						{
-							ReplyKeyboardMarkup ReplyKeyboard = new[]
+							new[] { $"Показать результат ещё {countShow} (Осталось {count})"},
+							new []{"Помощь", "Вкл.авто уведомление"},
+						};
+						ReplyKeyboard.ResizeKeyboard = true;
+
+						if (count != 0) {
+							await botClient.SendTextMessageAsync(chatId, $"Нажмите на кнопку, чтобы показать ещё {countShow}",
+								replyMarkup: ReplyKeyboard);
+						}
+
+
+						else
+						{
+							ReplyKeyboard = new[]
 							{
-								new[] { $"Показать результат ещё {countShow} (Осталось {count})"},
-								new []{"Помощь", "Вкл.авто уведомление"},
+								new []{"Вкл.авто уведомление"},
+								new[]{"Помощь"}
 							};
 							ReplyKeyboard.ResizeKeyboard = true;
-
-							if (count != 0) {
-								await botClient.SendTextMessageAsync(chatId, $"Нажмите на кнопку, чтобы показать ещё {countShow}",
-									replyMarkup: ReplyKeyboard);
-							}
-
-
-							else
-							{
-								ReplyKeyboard = new[]
-								{
-										new []{"Вкл.авто уведомление"},
-										new[]{"Помощь"}
-								};
-								ReplyKeyboard.ResizeKeyboard = true;
-								await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны, сделайте повторный запрос или включите уведомления по этому.",
-									replyMarkup: ReplyKeyboard);
-							}
+							await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны, сделайте повторный запрос или включите уведомления по этому.",
+								replyMarkup: ReplyKeyboard);
+						}
 							
-						}
-						
+					}
 
-						if (await GetLatQueryText(chatId.ToString()) == string.Empty)
-						{
-							isStop = true;
-						}
-						
 				}
 			}
 
