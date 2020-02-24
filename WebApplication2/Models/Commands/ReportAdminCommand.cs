@@ -7,7 +7,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class ReportAdminCommand : Command
+    public class ReportAdminCommand : CommandMessage
     {
         public override string Name => @"/report";
 

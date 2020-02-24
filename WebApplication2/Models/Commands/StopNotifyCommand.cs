@@ -8,9 +8,9 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class StopNotifyCommand : Command
+    public class StopNotifyCommand : CommandMessage
     {
-        public override string Name => @"Отключить автоматические уведомления";
+        public override string Name => @"Откл. авто уведомление";
         public override bool Contains(Message message)
         {
             if (message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
@@ -32,7 +32,7 @@ namespace WebApplication2.Models.Commands
                         
                         ReplyKeyboardMarkup ReplyKeyboard = new[]
                         {
-                            new []{"Помощь"}
+                            new []{"Помощь", "Поиск по категориям"}
                         };
                         ReplyKeyboard.ResizeKeyboard = true;
                         

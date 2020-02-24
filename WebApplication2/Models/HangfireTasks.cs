@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RestSharp;
@@ -35,22 +37,7 @@ namespace WebApplication2.Models
 		    "74d89552338d10e3a6ddec113d6c5a481542afe13f176a5514303459ed9625ab47a4f68beff9499222b11",
 		    "bb15ee18ad62811a5dbe158b26f7dd7edf30fbf0c42d5d8ecd42c49778b94e3b2e49009f569f4cca1c1b0"
 	    };
-
-	    static List<GroupAlbum> groupList = new List<GroupAlbum>
-	    {
-		    new GroupAlbum() {GroupId = -76629546, AlbumId = 203426857},
-		    new GroupAlbum() {GroupId = -11571122, AlbumId = 229924509},
-		    new GroupAlbum() {GroupId = -76629546, AlbumId = 203426992},
-		    new GroupAlbum() {GroupId = -76629546, AlbumId = 203426935},
-		    new GroupAlbum() {GroupId = -11571122, AlbumId = 218215712},
-		    new GroupAlbum() {GroupId = -11571122, AlbumId = 229924703},
-		    new GroupAlbum() {GroupId = -42520747, AlbumId = 265095887},
-		    new GroupAlbum() {GroupId = -42520747, AlbumId = 265095549},
-		    new GroupAlbum() {GroupId = -42520747, AlbumId = 255052787},
-		    new GroupAlbum() {GroupId = -13212026, AlbumId = 271731709},
-		    new GroupAlbum() {GroupId = -13212026, AlbumId = 270419996},
-		    new GroupAlbum() {GroupId = -13212026, AlbumId = 270419973}
-	    };
+	    
 	    
 		
 	    public partial class Temperatures
@@ -93,6 +80,8 @@ namespace WebApplication2.Models
 		    public string Src { get; set; }
 		    [JsonProperty("date")]
 		    public long Date { get; set; }
+		    [JsonProperty("from_id")]
+		    public int FromId { get; set; }
 	    }
 	    public partial class Size
 	    {
@@ -113,6 +102,12 @@ namespace WebApplication2.Models
 		public class Items
 		{
 			public string text { get; set; }
+			[JsonProperty("from_id")]
+			public int FromId { get; set; }
+			[JsonProperty("date")]
+			public int date { get; set; }
+			[JsonProperty("id")]
+			public int id { get; set; }
 		}
 
 		public class Comments
@@ -121,6 +116,10 @@ namespace WebApplication2.Models
 			public int Count { get; set; }
 		}
 
+		public class Root
+		{
+			public List<Item> response { get; set;}
+		}
 		
 
 		public class Responsee
@@ -139,6 +138,153 @@ namespace WebApplication2.Models
 			DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
 			dtDateTime = dtDateTime.AddSeconds(unixtime).ToLocalTime();
 			return dtDateTime;
+		}
+
+		public static async Task ParseKidalId()
+		{
+			using var db = new DbNorthwind();
+			var list = await db.Kidals.Where(w => w.VkId == 0 && !w.IsDelete).ToListAsync();
+			var client = new RestClient("https://api.vk.com/method");
+			foreach (var item in list)
+			{
+				var request = new RestRequest("users.get");
+				
+				
+				request.AddQueryParameter("access_token", userList[0]);
+				request.AddQueryParameter("user_ids", item.VkLink.Replace("vk.com/", ""));
+				request.AddQueryParameter("v", "5.103");
+
+				var res = await client.ExecuteAsync(request);
+
+				var res2 = JsonConvert.DeserializeObject<Root>(res.Content);
+				if(res2.response == null)
+				{
+					await db.Kidals.Where(w => w == item)
+						.Set(s => s.IsDelete, true)
+						.UpdateAsync();
+				}
+				else
+				{
+					await db.Kidals.Where(w => w == item)
+					.Set(s => s.VkId, res2.response[0].Id)
+					.UpdateAsync();
+				}
+
+				
+			}
+		}
+		
+
+		public static async Task ParseKidals()
+		{
+			var client = new RestClient("https://api.vk.com/method");
+			var kidals = Startup.StaticConfig.GetSection("Settings").Get<Settings>().Kidals;
+			foreach (var kidal in kidals)
+			{
+				var request = new RestRequest("board.getComments");
+
+				var groupId = kidal.Replace("https://vk.com/topic-", "").Split('_')[0];
+				var topicId = kidal.Replace("https://vk.com/topic-", "").Split('_')[1];
+
+				request.AddQueryParameter("access_token", userList[0]);
+				request.AddQueryParameter("group_id", groupId);
+				request.AddQueryParameter("topic_id", topicId);
+				//request.AddQueryParameter("preview_length", "-");
+				request.AddQueryParameter("sort", "desc");
+				request.AddQueryParameter("count", "100");
+				request.AddQueryParameter("v", "5.103");
+
+				var res = await client.ExecuteAsync(request);
+
+				var response = JsonConvert.DeserializeObject<RootObject>(res.Content);
+				
+				await using var db = new DbNorthwind();
+				var kidalsList = await db.Kidals.ToListAsync();
+				var newKidalsList = new List<Kidals>();
+				if (response.response != null)
+				{
+					foreach (var item in response.response.Items)
+					{
+						var regex = new Regex(@"vk.com/([^ \n]+)");
+						MatchCollection matches = regex.Matches(item.Text);
+						if (matches.Any())
+						{
+							foreach (Match math in matches)
+							{
+								if (math.Value.Contains("photo") ||
+								    math.Value.Contains("wall") || math.Value.Contains("public"))
+								{
+									continue;
+								}
+
+								if (kidalsList.FirstOrDefault(f => f.VkLink == math.Value.Replace(",", "").Replace("?", "").Replace("!", "").Replace(")", "")) == null
+								    || newKidalsList.Select(s => s.VkLink).Contains(math.Value.Replace(",", "").Replace("?", "").Replace("!", "").Replace(")", "")))
+								{
+									var regex2 = new Regex(@"vk.com/id[0-9\(\)]+");
+									MatchCollection matches2 = regex2.Matches(math.Value);
+									if (matches2.Any())
+									{
+										foreach (Match math2 in matches2)
+										{
+											try
+											{
+												if (kidalsList.FirstOrDefault(f =>
+													    f.VkLink == math2.Value.Replace(",", "").Replace("?", "")
+														    .Replace("!", "").Replace(")", "")) == null
+												    || newKidalsList.Select(s => s.VkLink)
+													    .Contains(math2.Value.Replace(",", "").Replace("?", "")
+														    .Replace("!", "").Replace(")", "")))
+												{
+													newKidalsList.Add(new Kidals()
+													{
+														PostId = (int) item.Id,
+														VkId = int.Parse(math2.Value.Replace("vk.com/id", "")
+															.Replace(")", "")),
+														VkLink = math.Value.Replace(",", "").Replace("?", "")
+															.Replace("!", "").Replace(")", ""),
+														IsDelete = false,
+														GroupId = groupId,
+														TopicId = topicId
+													});
+												}
+											}
+											catch { }
+										}
+										
+											
+									}
+									else
+									{
+										try
+										{
+											newKidalsList.Add(new Kidals()
+											{
+												PostId = (int)item.Id,
+												VkId = 0,
+												VkLink = math.Value.Replace(",", "").Replace("?", "").Replace("!", "").Replace(")", ""),
+												IsDelete = false,
+												GroupId = groupId,
+												TopicId = topicId
+											});
+										}
+										catch { }
+
+									}
+								}
+									
+							}
+							
+						}
+
+					}
+				}
+				
+
+				db.BulkCopy(newKidalsList);
+
+
+
+			}
 		}
 		public static async Task ParseComment()
 		{
@@ -230,8 +376,8 @@ namespace WebApplication2.Models
 					Category = int.Parse(mass[2])
 				});
 			});
-			
-			
+
+			var list = new List<GroupAlbum>();
 			foreach (var group in albumsList)
 			{
 				var request = new RestRequest("photos.get");
@@ -251,30 +397,8 @@ namespace WebApplication2.Models
 				
 				if (photos.Response == null)
 				{
-					try
-					{
-						string path = @"/dataNotify.txt";
-						var date = new DateTime();
-						if (!File.Exists(path))
-						{
-							File.WriteAllText(path, DateTime.Now.ToShortDateString());
-						}
-						else
-						{
-							date = Convert.ToDateTime(File.ReadAllText(path));
-						}
-
-						if (date != new DateTime() && DateTime.Now > date.AddMinutes(2))
-						{
-							var bot = await Bot.GetBotClientAsync();
-							await bot.SendTextMessageAsync(settings.AdminChatId,
-								$"Не удалось спарсить альбом: https://vk.com/album{group.GroupId}_{group.AlbumId}");
-						}
-					}
-					catch { }
-					
+					list.Add(group);
 					continue;
-					
 				}
 
 				Console.WriteLine(photos.Response.Items.Count);
@@ -317,11 +441,24 @@ namespace WebApplication2.Models
 				}
 
 
-
+				Thread.Sleep(700);
 
 			}
-			Console.WriteLine("Finish");
-			using (var db = new DbNorthwind())
+			if (list.Any())
+			{
+				if (Settings.LastParse < DateTime.Now.AddHours(-1))
+				{
+					string albumsErrorList = "";
+
+					list.ForEach(x => albumsErrorList += $"https://vk.com/album{x.GroupId}_{x.AlbumId} (https://vk.com/public{x.GroupId.ToString().Replace("-", "")})" + Environment.NewLine);
+
+					Settings.LastParse = DateTime.Now;
+					var bot = await Bot.GetBotClientAsync();
+					await bot.SendTextMessageAsync(settings.AdminChatId,
+						$"Не удалось спарсить альбомы: {albumsErrorList}");
+				}
+			}
+			await using (var db = new DbNorthwind())
 			{
 				if (addList.Any())
 				{
@@ -334,6 +471,8 @@ namespace WebApplication2.Models
 						.Delete();
 				}
 			}
+
+			
 			Console.WriteLine($"Удалено {removeList.Count}, добавлено {addList.Count}");
 
 

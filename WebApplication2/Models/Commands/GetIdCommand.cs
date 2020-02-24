@@ -10,7 +10,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-	public class GetIdCommand : Command
+	public class GetIdCommand : CommandMessage
 	{
 		public override string Name => "/getid";
 		public override bool Contains(Message message)

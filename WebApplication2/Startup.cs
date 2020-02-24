@@ -70,7 +70,7 @@ namespace WebApplication2
             RecurringJob.AddOrUpdate(
 
              () => HangfireTasks.ParseAllAlbumsVkAsync(),
-            Cron.MinuteInterval(4));
+            Cron.MinuteInterval(6));
 
             RecurringJob.AddOrUpdate(
 
@@ -81,6 +81,16 @@ namespace WebApplication2
 
             () => HangfireTasks.Notify(),
             Cron.MinuteInterval(2));
+
+            RecurringJob.AddOrUpdate(
+
+            () => HangfireTasks.ParseKidals(),
+            Cron.MinuteInterval(30));
+
+            RecurringJob.AddOrUpdate(
+
+            () => HangfireTasks.ParseKidalId(),
+            Cron.MinuteInterval(5));
 
 
 

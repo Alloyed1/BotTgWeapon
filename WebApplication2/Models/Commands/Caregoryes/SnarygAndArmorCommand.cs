@@ -11,7 +11,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands.Caregoryes
 {
-    public class SnarygAndArmorCommand : Command
+    public class SnarygAndArmorCommand : CommandMessage
     {
         public override string Name => @"Снаряжение и защита";
 

@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using VkNet;
 using VkNet.Enums.SafetyEnums;
@@ -49,46 +50,71 @@ namespace WebApplication2.Controllers
 
         [HttpPost]
         [Route("/post")]
-        public async Task<OkResult> Post([FromBody]Update update)
+        public async Task<OkResult> Post([FromBody] Update update)
         {
 
             if (update == null) return Ok();
 
             string cache = "";
-            if (!_memoryCache.TryGetValue(update.Message.Chat.Id, out cache))
+            if(update.Message != null)
             {
-                _memoryCache.Set(update.Message.Chat.Id, "1", new MemoryCacheEntryOptions
+                if (!_memoryCache.TryGetValue(update.Message.Chat.Id, out cache))
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(500)
-                });
+                    _memoryCache.Set(update.Message.Chat.Id, "1", new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(500)
+                    });
+                }
+                else
+                {
+                    return Ok();
+                }
             }
-            else
-            {
-                return Ok();
-            }
-
-
-
-            var commands = Bot.Commands;
-            var message = update.Message;
+            
             var botClient = await Bot.GetBotClientAsync();
-
-            var isCommand = false;
-
-            foreach (var command in commands)
+            if (update.Type == UpdateType.Message)
             {
-                if (!command.Contains(message)) continue;
+                Console.WriteLine("123");
+                var commands = Bot.Commands;
+                var message = update.Message;
+                
 
-                isCommand = true;
-                await command.Execute(message, botClient, _configuration);
+                var isCommand = false;
 
-                break;
+                foreach (var command in commands)
+                {
+                    if (!command.Contains(message)) continue;
+
+                    isCommand = true;
+                    await command.Execute(message, botClient, _configuration);
+
+                    break;
+                }
+
+                if (!isCommand)
+                {
+                    await commands[0].Execute(message, botClient, _configuration);
+                }
+            }
+            else if (update.Type == UpdateType.CallbackQuery)
+            {
+                await botClient.AnswerCallbackQueryAsync(
+                    callbackQueryId: update.CallbackQuery.Id,
+                    text: $"Received {update.CallbackQuery.Data}"
+                );
+                var commands = Bot.CommandsCallBack;
+                var message = update.CallbackQuery;
+
+                foreach (var command in commands)
+                {
+                    if (!command.Contains(message)) continue;
+                    await command.Execute(message, botClient, _configuration);
+
+                    break;
+                }
             }
 
-            if (!isCommand)
-            {
-                await commands[0].Execute(message, botClient, _configuration);
-            }
+
 
             return Ok();
 

@@ -11,7 +11,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands.Caregoryes
 {
-    public class PrivodaCommand : Command
+    public class PrivodaCommand : CommandMessage
     {
         public override string Name => @"Привода";
 

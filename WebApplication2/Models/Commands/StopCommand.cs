@@ -10,7 +10,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class StopCommand : Command
+    public class StopCommand : CommandMessage
     {
         public override string Name => "Остановить";
         public override bool Contains(Message message)

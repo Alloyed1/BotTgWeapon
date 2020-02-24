@@ -16,18 +16,18 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-	public class ShowResultCommand : CommandMessage
+	public class ShowResultCommand : CommandCallBack
 	{
 		public override string Name => "Показать результат";
 		public Settings settings { get; set; }
 		
 
-		public override bool Contains(Message message)
+		public override bool Contains(CallbackQuery message)
 		{
-			if (message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+			if (message.Message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
 				return false;
 
-			return message.Text.Contains(this.Name);
+			return message.Data.Contains(this.Name);
 		}
 
 		async Task<List<WeaponList>> GetLastQuery(string chatId)
@@ -132,11 +132,11 @@ namespace WebApplication2.Models.Commands
 			
 		}
 
-		public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
+		public override async Task Execute(CallbackQuery message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
 		{
 			settings = configuration.GetSection("Settings").Get<Settings>();
 			
-			var chatId = message.Chat.Id;
+			var chatId = message.Message.Chat.Id;
 			var list = await GetLastQuery(chatId.ToString());
 			
 			var count = 0;
@@ -158,7 +158,7 @@ namespace WebApplication2.Models.Commands
 			
 			if (!list.Any())
 			{
-				await botClient.SendTextMessageAsync(message.Chat.Id, "Все результаты были показаны");
+				await botClient.SendTextMessageAsync(chatId, "Все результаты были показаны");
 			}
 			else
 			{
@@ -196,7 +196,7 @@ namespace WebApplication2.Models.Commands
 						lis.Text = lis.Text.Substring(0, 450);
 					}
 
-					lis.Text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {lis.StartTime:dd/MM/yyyy}";
+					lis.Text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {lis.StartTime:dd'/'MM'/'yyyy HH:mm:ss}";
 
 					await using var db = new DbNorthwind();
 					var kidal = await db.Kidals.FirstOrDefaultAsync(f => f.VkId == lis.UserId);
@@ -208,14 +208,18 @@ namespace WebApplication2.Models.Commands
 					{
 						ReplyKeyboardMarkup ReplyKeyboard = new[]
 						{
-							new[] { $"Показать результат ещё {countShow} (Осталось {count})"},
+							//new[] { $"Показать результат ещё {countShow} (Осталось {count})"},
 							new []{"Помощь", "Вкл.авто уведомление"},
 						};
 						ReplyKeyboard.ResizeKeyboard = true;
 
 						if (count != 0) {
+							var listMarkup = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
+							{
+								InlineKeyboardButton.WithCallbackData("Показать результат", "Показать результат")
+							});
 							await botClient.SendTextMessageAsync(chatId, $"Нажмите на кнопку, чтобы показать ещё {countShow}",
-								replyMarkup: ReplyKeyboard);
+								replyMarkup: listMarkup);
 						}
 
 
@@ -223,7 +227,7 @@ namespace WebApplication2.Models.Commands
 						{
 							ReplyKeyboard = new[]
 							{
-								new []{"Вкл.авто уведомление"},
+								new []{"Вкл.авто уведомление", "Поиск по категориям"},
 								new[]{"Помощь"}
 							};
 							ReplyKeyboard.ResizeKeyboard = true;

@@ -11,7 +11,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands.Caregoryes
 {
-    public class AllCategoryCommand : Command
+    public class AllCategoryCommand : CommandMessage
     {
         public override string Name => @"Все категории";
 

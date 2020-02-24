@@ -11,7 +11,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class CategoriesShowCommand: Command
+    public class CategoriesShowCommand: CommandMessage
     {
         public override string Name => @"Поиск по категориям";
         
@@ -31,7 +31,7 @@ namespace WebApplication2.Models.Commands
             ReplyKeyboardMarkup ReplyKeyboard = new[]
             {
                 new []{"Привода", "Снаряжение и защита", "Аксессуары и запчасти"},
-                new []{"Все категории"}
+                new []{"Все категории", "Помощь"}
             };
             ReplyKeyboard.ResizeKeyboard = true;
 

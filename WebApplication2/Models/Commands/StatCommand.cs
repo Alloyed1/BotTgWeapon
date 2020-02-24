@@ -12,7 +12,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-	public class StatCommand : Command
+	public class StatCommand : CommandMessage
 	{
 		public override string Name => @"/stat";
 		public override bool Contains(Message message)

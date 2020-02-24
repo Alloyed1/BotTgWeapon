@@ -8,7 +8,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class HelpCommand : Command
+    public class HelpCommand : CommandMessage
     {
         public override string Name => @"Помощь";
         public override bool Contains(Message message)
@@ -21,7 +21,7 @@ namespace WebApplication2.Models.Commands
         public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             var chatId = message.Chat.Id;
-            await botClient.SendTextMessageAsync(chatId, "Бот для поиска по страйкбольным барахолкам."+ Environment.NewLine +" В случае замечаний/предложений для связи с администрацией напишите: /report текст сообщения", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            await botClient.SendTextMessageAsync(chatId, "Бот для поиска по страйкбольным барахолкам."+ Environment.NewLine +"Введи слово и бот найдет. Для сложного поиска можно использовать «и» или «или». Например: АК и Тюмень." + Environment.NewLine +" В случае замечаний/предложений для связи с администрацией напишите: /report текст сообщения", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
         }
     }
 }

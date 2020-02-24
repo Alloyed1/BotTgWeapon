@@ -8,7 +8,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class CountCommand : Command
+    public class CountCommand : CommandMessage
     {
         public override string Name => @"/count";
         

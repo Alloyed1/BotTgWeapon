@@ -10,7 +10,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class NotifyComand : Command
+    public class NotifyComand : CommandMessage
     {
         public override string Name => "Вкл.авто уведомление";
         public override bool Contains(Message message)
@@ -29,7 +29,7 @@ namespace WebApplication2.Models.Commands
                 
                 ReplyKeyboardMarkup ReplyKeyboard = new[]
                 {
-                    new[] { "Отключить автоматические уведомления", "Помощь"},
+                    new[] { "Откл. авто уведомление", "Помощь"},
                 };
                 ReplyKeyboard.ResizeKeyboard = true;
                 

@@ -11,7 +11,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands.Caregoryes
 {
-    public class OtherCommand : Command
+    public class OtherCommand : CommandMessage
     {
         public override string Name => @"Аксессуары и запчасти";
 

@@ -21,5 +21,6 @@ namespace WebApplication2.Models
 		[Column(Name = "ChatId")]
 		public int ChatId { get; set; }
 		public Chat Chat { get; set; }
+		
 	}
 }

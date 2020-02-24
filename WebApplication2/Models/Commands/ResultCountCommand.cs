@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
@@ -15,7 +16,7 @@ using File = System.IO.File;
 
 namespace WebApplication2.Models.Commands
 {
-    public class ResultCountCommand : Command
+    public class ResultCountCommand : CommandMessage
     {
         
         
@@ -79,24 +80,27 @@ namespace WebApplication2.Models.Commands
                     
 
                 
-
-                ReplyKeyboardMarkup ReplyKeyboard = new[]
+                var list = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
                 {
-                    new[] { "Показать результат", "Помощь"},
-                    new[]{"Поиск по категориям"}
-                };
-                ReplyKeyboard.ResizeKeyboard = true;
+                    InlineKeyboardButton.WithCallbackData("Показать результат", "Показать результат")
+                });
+
 
 
 
                 if (ggg == 0)
                 {
-                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.");
+                    ReplyKeyboardMarkup ReplyKeyboard = new[]
+                    {
+                        new[] { "Поиск по категориям", "Помощь"},
+                    };
+                    ReplyKeyboard.ResizeKeyboard = true;
+                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: ReplyKeyboard);
 
                 }
                 else
                 {
-                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: ReplyKeyboard);
+                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: list);
                 }
 
 
@@ -171,35 +175,36 @@ namespace WebApplication2.Models.Commands
                 
                 using (var db = new DbNorthwind())
                 {
+                    var listWeapon = await db.WeaponList.ToListAsync();
                     var returnList = new List<WeaponList>();
                     if (and)
                     {
                         if (list.Count == 2)
                         {
-                            returnList = await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            && w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
+                            returnList = listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(list[0]), RegexOptions.IgnoreCase)
+                                            && Regex.IsMatch(w.Text, Regex.Escape(list[1]), RegexOptions.IgnoreCase)).ToList();
                         }
                         else if (list.Count == 3)
                         {
-                            returnList = await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            && w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            && w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
+                            returnList = listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(list[0]), RegexOptions.IgnoreCase)
+                                            && Regex.IsMatch(w.Text, Regex.Escape(list[1]), RegexOptions.IgnoreCase)
+                                            && Regex.IsMatch(w.Text, Regex.Escape(list[2]), RegexOptions.IgnoreCase)).ToList();
                         }
                         else if (list.Count == 4)
                         {
-                            returnList = await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            && w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            && w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            && w.Text.ToLower().Contains(list[3].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
+                            returnList = listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(list[0]), RegexOptions.IgnoreCase)
+                                            && Regex.IsMatch(w.Text, Regex.Escape(list[1]), RegexOptions.IgnoreCase)
+                                            && Regex.IsMatch(w.Text, Regex.Escape(list[2]), RegexOptions.IgnoreCase)
+                                            && Regex.IsMatch(w.Text, Regex.Escape(list[3]), RegexOptions.IgnoreCase)).ToList();
                         }
                         else
                         {
-                            returnList =  await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(message.ToLower(), StringComparison.CurrentCultureIgnoreCase))
-                                .ToListAsync();
+                            returnList =  listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(message), RegexOptions.IgnoreCase))
+                                .ToList();
                         }
 
                     }
@@ -207,37 +212,37 @@ namespace WebApplication2.Models.Commands
                     {
                         if (list.Count == 2)
                         {
-                            returnList = await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            || w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
+                            returnList = listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(list[0]), RegexOptions.IgnoreCase)
+                                            || Regex.IsMatch(w.Text, Regex.Escape(list[1]), RegexOptions.IgnoreCase)).ToList();
                         }
                         else if (list.Count == 3)
                         {
-                            returnList = await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            || w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            || w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
+                            returnList = listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(list[0]), RegexOptions.IgnoreCase)
+                                            || Regex.IsMatch(w.Text, Regex.Escape(list[1]), RegexOptions.IgnoreCase)
+                                            || Regex.IsMatch(w.Text, Regex.Escape(list[2]), RegexOptions.IgnoreCase)).ToList();
                         }
                         else if (list.Count == 4)
                         {
-                            returnList = await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(list[0].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            || w.Text.ToLower().Contains(list[1].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            || w.Text.ToLower().Contains(list[2].ToLower(), StringComparison.CurrentCultureIgnoreCase)
-                                            || w.Text.ToLower().Contains(list[3].ToLower(), StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
+                            returnList = listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(list[0]), RegexOptions.IgnoreCase)
+                                            || Regex.IsMatch(w.Text, Regex.Escape(list[1]), RegexOptions.IgnoreCase)
+                                            || Regex.IsMatch(w.Text, Regex.Escape(list[2]), RegexOptions.IgnoreCase)
+                                            || Regex.IsMatch(w.Text, Regex.Escape(list[3]), RegexOptions.IgnoreCase)).ToList();
                         }
                         else
                         {
-                            returnList =  await db.WeaponList
-                                .Where(w => w.Text.ToLower().Contains(message.ToLower(), StringComparison.CurrentCultureIgnoreCase))
-                                .ToListAsync();
+                            returnList =  listWeapon
+                                .Where(w => Regex.IsMatch(w.Text, Regex.Escape(message), RegexOptions.IgnoreCase))
+                                .ToList();
                         }
                     }
                     else
                     {
-                        returnList =  await db.WeaponList
-                            .Where(w => w.Text.ToLower().Contains(message.ToLower()))
-                            .ToListAsync();
+                        returnList =  listWeapon
+                            .Where(w => Regex.IsMatch(w.Text, Regex.Escape(message), RegexOptions.IgnoreCase))
+                            .ToList();
                     }
                     
                         

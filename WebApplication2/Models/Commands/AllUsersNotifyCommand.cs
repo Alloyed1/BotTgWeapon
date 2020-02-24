@@ -12,7 +12,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-	public class AllUsersNotifyCommand : Command
+	public class AllUsersNotifyCommand : CommandMessage
 	{
 		public override string Name => "/notify";
 		public override bool Contains(Message message)

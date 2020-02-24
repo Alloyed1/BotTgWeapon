@@ -8,7 +8,7 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-    public class StartCommand : Command
+    public class StartCommand : CommandMessage
     {
         public override string Name => @"/start";
 
