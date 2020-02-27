@@ -1,26 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.Unicode;
-using System.Threading;
+
 using System.Threading.Tasks;
 using LinqToDB;
-using LinqToDB.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
-using VkNet;
-using VkNet.Enums.SafetyEnums;
-using VkNet.Model;
-using VkNet.Model.RequestParams;
+
 using WebApplication2.Models;
 
 namespace WebApplication2.Controllers
