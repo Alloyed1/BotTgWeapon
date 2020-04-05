@@ -2,6 +2,7 @@
 using System.Linq;
 
 using System.Threading.Tasks;
+using Hangfire;
 using LinqToDB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -36,9 +37,23 @@ namespace WebApplication2.Controllers
                 return await db.WeaponList.Where(w => w.Text == "" && w.FirstComment != "0").CountAsync();
             }
         }
+        [HttpGet]
+        [Route("/setHangfire")]
+        public async Task<string> Set()
+        {
+            
 
+            return "Ok";
+        }
         [HttpPost]
         [Route("/post")]
+        public async Task<OkResult> OkResultAsync()
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("/postt")]
         public async Task<OkResult> Post([FromBody] Update update)
         {
 
@@ -63,7 +78,6 @@ namespace WebApplication2.Controllers
             var botClient = await Bot.GetBotClientAsync();
             if (update.Type == UpdateType.Message)
             {
-                Console.WriteLine("123");
                 var commands = Bot.Commands;
                 var message = update.Message;
                 
@@ -75,7 +89,7 @@ namespace WebApplication2.Controllers
                     if (!command.Contains(message)) continue;
 
                     isCommand = true;
-                    await command.Execute(message, botClient, _configuration);
+                    _= Task.Run(() => command.Execute(message, botClient, _configuration));
 
                     break;
                 }

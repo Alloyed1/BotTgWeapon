@@ -75,11 +75,6 @@ namespace WebApplication2.Models.Commands.CallBackCommand
 					                                             + Environment.NewLine + Environment.NewLine + "❗Больше лотов у данного продавца не найдено");
 				}
 			}
-			
-			
-
-
-
 
 		}
 		async Task SendPhoto(string text, string url,string scr , int vkId , int chatId, TelegramBotClient botClient, Kidals kidals = null)

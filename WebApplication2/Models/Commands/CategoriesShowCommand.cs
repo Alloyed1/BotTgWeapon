@@ -31,7 +31,7 @@ namespace WebApplication2.Models.Commands
             ReplyKeyboardMarkup ReplyKeyboard = new[]
             {
                 new []{"Привода", "Снаряжение и защита", "Аксессуары и запчасти"},
-                new []{"Все категории", "Помощь"}
+                new []{"Все категории", "Помощь", "Вкл.авто уведомление"}
             };
             ReplyKeyboard.ResizeKeyboard = true;
 

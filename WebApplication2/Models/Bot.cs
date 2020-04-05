@@ -31,7 +31,7 @@ namespace WebApplication2.Models
                 new ResultCountCommand(),
                 new CountCommand(),
                 new StartCommand(),
-                
+                new ShowResultCommand(),
                 new HelpCommand(),
                 new NotifyComand(),
                 new StopCommand(),
@@ -46,17 +46,18 @@ namespace WebApplication2.Models
                 new PrivodaCommand(),
                 new SnarygAndArmorCommand(),
                 new AllCategoryCommand(),
-                new AddKidalCommand()
+                new AddKidalCommand(),
+                new CheckCommand()
             };
             commandsCallBack = new List<CommandCallBack>()
             {
                 new ShowUserInfoCommand(),
-                new ShowResultCommand(),
+                
                 new ShowLotsCommand()
             };
             
 
-            //var proxy = new HttpToSocks5Proxy("176.53.172.126", 37219, "beJTqlYfJK", "vB8qnCswIi");
+            //var proxy = new HttpToSocks5Proxy("176.107.176.76", 38967, "P8sGSP", "qRKqX5");
             botClient = new TelegramBotClient(AppSettings.Key);
             await botClient.SetWebhookAsync(AppSettings.url);
             return botClient;

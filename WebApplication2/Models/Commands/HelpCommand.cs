@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using LinqToDB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -21,7 +22,17 @@ namespace WebApplication2.Models.Commands
         public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
         {
             var chatId = message.Chat.Id;
-            await botClient.SendTextMessageAsync(chatId, "Бот для поиска по страйкбольным барахолкам."+ Environment.NewLine +"Введи слово и бот найдет. Для сложного поиска можно использовать «и» или «или». Например: АК и Тюмень." + Environment.NewLine +" В случае замечаний/предложений для связи с администрацией напишите: /report текст сообщения", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            await using var db = new DbNorthwind();
+
+            var countLots = await db.WeaponList.CountAsync();
+            var countKidals = await db.Kidals.CountAsync();
+            
+            await botClient.SendTextMessageAsync(chatId, "Бот для поиска по страйкбольным барахолкам."
+                                                         + Environment.NewLine +"Введи слово и бот найдет. Для сложного поиска можно использовать «и» или «или». Например: АК и Тюмень." 
+                                                         + Environment.NewLine + Environment.NewLine +" В случае замечаний/предложений для связи с администрацией напишите: /report текст сообщения"
+                                                         + Environment.NewLine + " Чтобы проверить человека в списках мошенников: /check ссылка на вк"
+                                                         + Environment.NewLine + Environment.NewLine + $"✅ Количество лотов на данный момент : {countLots}"
+                                                         + Environment.NewLine +  $"❗ Количество мошенников в базе : {countKidals}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
         }
     }
 }

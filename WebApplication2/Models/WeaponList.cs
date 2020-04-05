@@ -28,6 +28,10 @@ namespace WebApplication2.Models
         [Column(Name = "UserId")]
         public int UserId { get; set; }
 
+        [Column(Name = "IsAlbum")] 
+        public bool IsAlbum { get; set; } = true;
+
+
         [Column(Name = "StartTime")]
         public DateTime StartTime { get; set; }
 

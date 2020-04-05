@@ -49,7 +49,8 @@ namespace WebApplication2
             app.UseRouting();
             var documentOptions = new BackgroundJobServerOptions
             {
-                WorkerCount = 30,
+                WorkerCount = 10,
+                SchedulePollingInterval = TimeSpan.FromMilliseconds(15000)
             };
 
             app.UseHangfireServer(documentOptions);
@@ -57,36 +58,38 @@ namespace WebApplication2
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
+            //RecurringJob.AddOrUpdate(
+
+            // () => HangfireTasks.ParseAllAlbumsVkAsync(),
+            //Cron.MinuteInterval(6));
+
+            //RecurringJob.AddOrUpdate(
+
+            //() => HangfireTasks.ParseComment(),
+            //    "*/20 * * * * *");
+
+            //RecurringJob.AddOrUpdate(
+
+            //() => HangfireTasks.Notify(),
+            //Cron.MinuteInterval(2));
+
+            //RecurringJob.AddOrUpdate(
+
+            //() => HangfireTasks.ParseKidals(),
+            //Cron.MinuteInterval(30));
+
+            //RecurringJob.AddOrUpdate(
+
+            //() => HangfireTasks.ParseKidalId(),
+            //Cron.MinuteInterval(5));
 
             RecurringJob.AddOrUpdate(
 
-             () => HangfireTasks.ParseAllAlbumsVkAsync(),
-            Cron.MinuteInterval(6));
-
-            RecurringJob.AddOrUpdate(
-
-            () => HangfireTasks.ParseComment(),
-                Cron.MinuteInterval(1));
-
-            RecurringJob.AddOrUpdate(
-
-            () => HangfireTasks.Notify(),
-            Cron.MinuteInterval(2));
-
-            RecurringJob.AddOrUpdate(
-
-            () => HangfireTasks.ParseKidals(),
-            Cron.MinuteInterval(30));
-
-            RecurringJob.AddOrUpdate(
-
-            () => HangfireTasks.ParseKidalId(),
-            Cron.MinuteInterval(5));
-
-
+            () => HangfireTasks.ParseAllTopicVkAsync(),
+            Cron.MinuteInterval(1));
 
             //Bot Configurations
-            Bot.GetBotClientAsync().GetAwaiter().GetResult();
+            //Bot.GetBotClientAsync().GetAwaiter().GetResult();
         }
     }
 }

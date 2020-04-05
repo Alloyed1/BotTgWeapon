@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LinqToDB;
+using LinqToDB.Common;
 using LinqToDB.Data;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
@@ -80,13 +81,17 @@ namespace WebApplication2.Models.Commands
                     
 
                 
-                var list = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
+                ReplyKeyboardMarkup keyboard4 = new[]
                 {
-                    InlineKeyboardButton.WithCallbackData("Показать результат", "Показать результат")
-                });
+					
+                    new []{"Показать результат", "Поиск по категориям"},
+                    new[]{"Помощь", "Вкл.авто уведомление",}
+                };
+                keyboard4.ResizeKeyboard = true;
 
 
-
+                var category = (await db.Chats.FirstOrDefaultAsync(f => f.ChatId == chatId.ToString())).CategorySearch;
+                
 
                 if (ggg == 0)
                 {
@@ -95,12 +100,40 @@ namespace WebApplication2.Models.Commands
                         new[] { "Поиск по категориям", "Помощь"},
                     };
                     ReplyKeyboard.ResizeKeyboard = true;
-                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: ReplyKeyboard);
+                    if (category.IsNullOrEmpty())
+                    {
+                        await botClient.SendTextMessageAsync(chatId,
+                            $@"Количество найденных лотов: {ggg} Нажми «Показать результат» (в меню) либо сделай новый запрос.",
+                            replyMarkup: ReplyKeyboard);
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(chatId,
+                            $@"Количество найденных лотов: {ggg} Нажми «Показать результат» (в меню) либо сделай новый запрос."
+                            + Environment.NewLine + $"Поиск сделан по категории : '{category}'",
+                            replyMarkup: ReplyKeyboard);
+                    }
 
                 }
                 else
                 {
-                    await botClient.SendTextMessageAsync(chatId, $@"Количество найденных лотов: {ggg} Нажми «Показать результат» либо сделай новый запрос.", replyMarkup: list);
+                    ReplyKeyboardMarkup ReplyKeyboard = new[]
+                    {
+                        new[]{"Показать результат"},
+                        new[] { "Поиск по категориям", "Помощь"},
+                    };
+                    ReplyKeyboard.ResizeKeyboard = true;
+                    if (category.IsNullOrEmpty())
+                    {
+                        await botClient.SendTextMessageAsync(chatId,
+                            $@"Количество найденных лотов: {ggg} Нажми «Показать результат» (в меню) либо сделай новый запрос.", replyMarkup: ReplyKeyboard);
+                    }
+                    else
+                    {
+                        await botClient.SendTextMessageAsync(chatId,
+                            $@"Количество найденных лотов: {ggg} Нажми «Показать результат» (в меню) либо сделай новый запрос."
+                            + Environment.NewLine + $"Поиск сделан по категории : '{category}'", replyMarkup: ReplyKeyboard);
+                    }
                 }
 
 

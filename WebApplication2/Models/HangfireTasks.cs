@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RestSharp;
+using RestSharp.Extensions;
 using RestSharp.Serialization.Json;
 using Telegram.Bot.Types.ReplyMarkups;
 using VkNet;
@@ -296,7 +297,7 @@ namespace WebApplication2.Models
 			{
 				listParse = await db.WeaponList
 					.Where(w => w.Text == "" && int.Parse(w.FirstComment) > 0)
-					.Take(4)
+					.Take(4) 
 					.ToListAsync();
 
 				foreach (var item in listParse)
@@ -342,6 +343,73 @@ namespace WebApplication2.Models
 			}
 		}
 
+		public static async Task ParseAllTopicVkAsync()
+		{
+			var list = Startup.StaticConfig.GetSection("Settings").Get<Settings>().Topics;
+			
+			var active_user = 1;
+			
+			var addList = new List<WeaponList>();
+			var removeList = new List<WeaponList>();
+			var weaponListDb = new List<WeaponList>();
+
+			await using var db = new DbNorthwind();
+			weaponListDb = await db.WeaponList.Where(w => !w.IsAlbum).ToListAsync();
+			
+			var albumsList = new List<GroupAlbum>();
+			
+			list.ForEach(f =>
+			{
+				f = f.Replace("https://vk.com/topic-", "");
+				var mass = f.Split('_').ToList();
+				try
+				{
+					albumsList.Add(new GroupAlbum()
+					{
+						AlbumId = long.Parse(mass[1]),
+						GroupId = long.Parse(mass[0]),
+						Category = int.Parse(mass[2])
+					});
+				}
+				catch { }
+
+			});
+			
+			var client = new RestClient("https://api.vk.com/method");
+
+			foreach (var item in albumsList)
+			{
+				
+				var api = new VkApi();
+				
+				api.Authorize(new ApiAuthParams
+				{
+					AccessToken = userList[0]
+				});
+
+				var list2 = await api.Board.GetCommentsAsync(new BoardGetCommentsParams()
+				{
+					Count = 5,
+					Sort = CommentsSort.Desc,
+					GroupId = item.GroupId,
+					TopicId = item.AlbumId,
+				});
+
+				foreach (var photo in list2.Items)
+				{
+					var src = ((Photo) photo.Attachments.FirstOrDefault()?.Instance).Sizes
+						.OrderByDescending(d => d.Height).FirstOrDefault()?.Src;
+				}
+				
+				
+			}
+			
+			
+			
+			
+
+		}
+
 
 		public static async Task ParseAllAlbumsVkAsync()
 		{
@@ -369,12 +437,17 @@ namespace WebApplication2.Models
 			{
 				f = f.Replace("https://vk.com/album", "");
 				var mass = f.Split('_').ToList();
-				albumsList.Add(new GroupAlbum()
+				try
 				{
-					AlbumId = long.Parse(mass[1]),
-					GroupId = long.Parse(mass[0]),
-					Category = int.Parse(mass[2])
-				});
+					albumsList.Add(new GroupAlbum()
+					{
+						AlbumId = long.Parse(mass[1]),
+						GroupId = long.Parse(mass[0]),
+						Category = int.Parse(mass[2])
+					});
+				}
+				catch { }
+
 			});
 
 			var list = new List<GroupAlbum>();
@@ -429,7 +502,8 @@ namespace WebApplication2.Models
 							StartTime = UnixTimeToDateTime(photo.Date),
 							FirstComment = photo.Comments.Count.ToString(),
 							Category = group.Category,
-							UserId = (int)photo.UserId
+							UserId = (int)photo.UserId,
+							IsAlbum = true
 						}) ;
 					}
 
@@ -441,7 +515,7 @@ namespace WebApplication2.Models
 				}
 
 
-				Thread.Sleep(700);
+				Thread.Sleep(900);
 
 			}
 			if (list.Any())
@@ -453,9 +527,9 @@ namespace WebApplication2.Models
 					list.ForEach(x => albumsErrorList += $"https://vk.com/album{x.GroupId}_{x.AlbumId} (https://vk.com/public{x.GroupId.ToString().Replace("-", "")})" + Environment.NewLine);
 
 					Settings.LastParse = DateTime.Now;
-					var bot = await Bot.GetBotClientAsync();
-					await bot.SendTextMessageAsync(settings.AdminChatId,
-						$"Не удалось спарсить альбомы: {albumsErrorList}");
+					//var bot = await Bot.GetBotClientAsync();
+					//await bot.SendTextMessageAsync(settings.AdminChatId,
+					//	$"Не удалось спарсить альбомы: {albumsErrorList}");
 				}
 			}
 			await using (var db = new DbNorthwind())
@@ -502,20 +576,66 @@ namespace WebApplication2.Models
 					foreach (var notif in notifyList.OrderBy(d => d.StartTime))
 					{
 						var text = notif.Text;
-						if(notif.Text.Length >= 450)
+						if(notif.Text.Length >= 430)
 						{
-							text = notif.Text.Substring(0, 450);
+							text = notif.Text.Substring(0, 430);
 						}
 						
-						text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {notif.StartTime}";
-						
-						_ = botClient.SendPhotoAsync(item.ChatId, photo: notif.Src, caption: text,
-							replyMarkup: new InlineKeyboardMarkup(
-								InlineKeyboardButton.WithUrl("Перейти",
-									$"https://vk.com/photo{notif.GroupId}_{notif.PhotoId}")
-							));
+						var kidal = await db.Kidals.FirstOrDefaultAsync(f => f.VkId == notif.UserId);
+						if (kidal != null)
+						{
+							var listMarkup = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
+							{
+								new InlineKeyboardButton()
+								{
+									Text = "Перейти",
+									Url = $"https://vk.com/photo{notif.GroupId}_{notif.PhotoId}",
+								},
+								new InlineKeyboardButton()
+								{
+									Text = "❗Мошенник.Инфо.",
+									Url = $"https://vk.com/topic-{kidal.GroupId}_{kidal.TopicId}?post={kidal.PostId}",
+								},
+								InlineKeyboardButton.WithCallbackData("Проверить", "Проверить" + notif.UserId)
 
-						countMessages++;
+							});
+
+							text += Environment.NewLine + Environment.NewLine + "❗❗❗ Найден в списках мошенников ❗❗❗";
+							
+							_ = botClient.SendPhotoAsync(item.ChatId, photo: notif.Src, caption: text,
+								replyMarkup: listMarkup
+							);
+
+							countMessages++;
+							
+						}
+						else
+						{
+							var listMarkup = new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
+							{
+								new InlineKeyboardButton()
+								{
+									Text = "Перейти",
+									Url = $"https://vk.com/photo{notif.GroupId}_{notif.PhotoId}",
+								},
+								InlineKeyboardButton.WithCallbackData("Проверить", "Проверить" + notif.UserId)
+					
+							});
+				
+							text += Environment.NewLine + Environment.NewLine + "✅ В списках мошенников не найден";
+							
+							text += Environment.NewLine + Environment.NewLine + $"📅 Дата публикации: {notif.StartTime:dd'/'MM'/'yyyy HH:mm:ss}";
+						
+							_ = botClient.SendPhotoAsync(item.ChatId, photo: notif.Src, caption: text,
+								replyMarkup: listMarkup
+								);
+
+							countMessages++;
+				
+
+						}
+						
+						
 						
 					}
 					foreach (var itm in notifyList)

@@ -16,18 +16,18 @@ using WebApplication2.Controllers;
 
 namespace WebApplication2.Models.Commands
 {
-	public class ShowResultCommand : CommandCallBack
+	public class ShowResultCommand : CommandMessage
 	{
 		public override string Name => "Показать результат";
 		public Settings settings { get; set; }
 		
 
-		public override bool Contains(CallbackQuery message)
+		public override bool Contains(Message message)
 		{
-			if (message.Message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+			if (message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
 				return false;
 
-			return message.Data.Contains(this.Name);
+			return message.Text.Contains(this.Name);
 		}
 
 		async Task<List<WeaponList>> GetLastQuery(string chatId)
@@ -109,6 +109,9 @@ namespace WebApplication2.Models.Commands
 					InlineKeyboardButton.WithCallbackData("Проверить", "Проверить" + vkId)
 
 				});
+
+				text += Environment.NewLine + Environment.NewLine + "❗❗❗ Найден в списках мошенников ❗❗❗";
+				
 				await botClient.SendPhotoAsync(chatId, photo: scr, caption: text,
 					replyMarkup: list);
 			}
@@ -125,6 +128,8 @@ namespace WebApplication2.Models.Commands
 					
 				});
 				
+				text += Environment.NewLine + Environment.NewLine + "✅ В списках мошенников не найден";
+				
 				await botClient.SendPhotoAsync(chatId, photo: scr, caption: text,
 					replyMarkup: list
 					);
@@ -132,11 +137,11 @@ namespace WebApplication2.Models.Commands
 			
 		}
 
-		public override async Task Execute(CallbackQuery message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
+		public override async Task Execute(Message message, TelegramBotClient botClient, Microsoft.Extensions.Configuration.IConfiguration configuration)
 		{
 			settings = configuration.GetSection("Settings").Get<Settings>();
 			
-			var chatId = message.Message.Chat.Id;
+			var chatId = message.Chat.Id;
 			var list = await GetLastQuery(chatId.ToString());
 			
 			var count = 0;
@@ -151,9 +156,6 @@ namespace WebApplication2.Models.Commands
 			var countShow = settings.CountMessage;
 			if (count >= countShow) countShow = settings.CountMessage;
 			else countShow = count;
-
-			
-			
 			
 			
 			if (!list.Any())
@@ -191,12 +193,12 @@ namespace WebApplication2.Models.Commands
 				foreach (var lis in list)
 				{
 
-					if (lis.Text.Length > 450)
+					if (lis.Text.Length > 430)
 					{
-						lis.Text = lis.Text.Substring(0, 450);
+						lis.Text = lis.Text.Substring(0, 430);
 					}
 
-					lis.Text += Environment.NewLine + Environment.NewLine + $"Дата публикации: {lis.StartTime:dd'/'MM'/'yyyy HH:mm:ss}";
+					lis.Text += Environment.NewLine + Environment.NewLine + $"📅 Дата публикации: {lis.StartTime:dd'/'MM'/'yyyy HH:mm:ss}";
 
 					await using var db = new DbNorthwind();
 					var kidal = await db.Kidals.FirstOrDefaultAsync(f => f.VkId == lis.UserId);
@@ -208,7 +210,7 @@ namespace WebApplication2.Models.Commands
 					{
 						ReplyKeyboardMarkup ReplyKeyboard = new[]
 						{
-							//new[] { $"Показать результат ещё {countShow} (Осталось {count})"},
+							new[] { $"Показать результат ещё {countShow} (Осталось {count})", "Поиск по категориям"},
 							new []{"Помощь", "Вкл.авто уведомление"},
 						};
 						ReplyKeyboard.ResizeKeyboard = true;
@@ -218,8 +220,8 @@ namespace WebApplication2.Models.Commands
 							{
 								InlineKeyboardButton.WithCallbackData("Показать результат", "Показать результат")
 							});
-							await botClient.SendTextMessageAsync(chatId, $"Нажмите на кнопку, чтобы показать ещё {countShow}",
-								replyMarkup: listMarkup);
+							await botClient.SendTextMessageAsync(chatId, $"Нажмите на кнопку в меню, чтобы показать ещё {countShow}",
+								replyMarkup: ReplyKeyboard);
 						}
 
 
@@ -236,6 +238,7 @@ namespace WebApplication2.Models.Commands
 						}
 							
 					}
+					Thread.Sleep(settings.Delay);
 
 				}
 			}

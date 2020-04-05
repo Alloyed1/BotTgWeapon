@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB;
 using LinqToDB.Data;
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace WebApplication2.Models.Commands.CallBackCommand
 {
@@ -37,10 +39,20 @@ namespace WebApplication2.Models.Commands.CallBackCommand
                 WeaponListId = x.Id,
                 ChatId = (int)chatId,
             }));
+            
+            ReplyKeyboardMarkup keyboard4 = new[]
+            {
+					
+                new []{"Показать результат", "Поиск по категориям"},
+                new[]{"Помощь", "Вкл.авто уведомление",}
+            };
+            keyboard4.ResizeKeyboard = true;
+            
+            await botClient.SendTextMessageAsync(chatId, "Нажмите 'Показать результат', чтобы увидеть лоты пользователя", replyMarkup:keyboard4);
 
             db.BulkCopy(viewsTurns);
-            var commands = Bot.CommandsCallBack;
-            await commands[1].Execute(message, botClient, configuration);
+            
+            
         }
     }
 }
