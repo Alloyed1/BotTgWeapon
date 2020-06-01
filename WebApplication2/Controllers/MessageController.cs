@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-
+using System.Threading;
 using System.Threading.Tasks;
 using Hangfire;
 using LinqToDB;
@@ -29,25 +29,37 @@ namespace WebApplication2.Controllers
         }
         [HttpGet]
         [Route("/get")]
-        public async Task<int> Get()
+        public async Task<string> Get()
         {
+            await using var db = new DbNorthwind();
 
-            using(var db = new DbNorthwind())
-            {
-                return await db.WeaponList.Where(w => w.Text == "" && w.FirstComment != "0").CountAsync();
-            }
-        }
-        [HttpGet]
-        [Route("/setHangfire")]
-        public async Task<string> Set()
-        {
-            
+            var count = await db.WeaponList.Where(w => w.FirstComment == "" || w.Text == "").CountAsync();
+            var url = await db.WeaponList.Where(w => w.FileId == null).CountAsync();
 
-            return "Ok";
+            return count + Environment.NewLine + url;
         }
         [HttpPost]
         [Route("/post")]
         public async Task<OkResult> OkResultAsync()
+        {
+            return Ok();
+        }
+        [HttpGet]
+        [Route("/notify")]
+        public async Task<OkResult> Notify()
+        {
+            return Ok();
+        }
+        [HttpGet]
+        [Route("/success")]
+        public async Task<string> Success()
+        {
+            var settings = Startup.StaticConfig.GetSection("Settings").Get<Settings>().Subs;
+            return settings.ToString();
+        }
+        [HttpGet]
+        [Route("/error")]
+        public async Task<OkResult> Error()
         {
             return Ok();
         }
@@ -66,7 +78,7 @@ namespace WebApplication2.Controllers
                 {
                     _memoryCache.Set(update.Message.Chat.Id, "1", new MemoryCacheEntryOptions
                     {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(500)
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMilliseconds(400)
                     });
                 }
                 else
@@ -81,6 +93,17 @@ namespace WebApplication2.Controllers
                 var commands = Bot.Commands;
                 var message = update.Message;
                 
+                await using var db = new DbNorthwind();
+                var user = await db.Chats.FirstOrDefaultAsync(f => f.ChatId == update.Message.Chat.Id.ToString());
+                if (user != null && message?.Text != "Главное меню")
+                {
+                    if (user.IsCheck)
+                    {
+                        await commands[19].Execute(message, botClient, _configuration, _memoryCache);
+                        return Ok();
+                    }
+                }
+                
 
                 var isCommand = false;
 
@@ -89,22 +112,19 @@ namespace WebApplication2.Controllers
                     if (!command.Contains(message)) continue;
 
                     isCommand = true;
-                    _= Task.Run(() => command.Execute(message, botClient, _configuration));
+                    
+                    await command.Execute(message, botClient, _configuration, _memoryCache);
 
                     break;
                 }
 
                 if (!isCommand)
                 {
-                    await commands[0].Execute(message, botClient, _configuration);
+                    await commands[0].Execute(message, botClient, _configuration,_memoryCache);
                 }
             }
             else if (update.Type == UpdateType.CallbackQuery)
             {
-                await botClient.AnswerCallbackQueryAsync(
-                    callbackQueryId: update.CallbackQuery.Id,
-                    text: $"Received {update.CallbackQuery.Data}"
-                );
                 var commands = Bot.CommandsCallBack;
                 var message = update.CallbackQuery;
 
